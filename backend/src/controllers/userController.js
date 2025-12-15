@@ -19,7 +19,7 @@ export const createOrUpdateProfile = async (req, res) => {
         const user = await User.findOneAndUpdate(
             { uid: req.user.uid },
             profileData,
-            { new: true, upsert: true } // Create if doesn't exist
+            { new: true, upsert: true } 
         );
         res.json(user);
     } catch (error) {
