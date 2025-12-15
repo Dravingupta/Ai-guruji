@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const mealSchema = new mongoose.Schema({
     id: String,
     name: String,
-    type: { type: String }, // Explicit definition to handle 'type' keyword
+    type: { type: String },
     calories: Number,
     proteinGrams: Number,
     carbsGrams: Number,
