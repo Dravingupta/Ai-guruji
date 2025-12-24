@@ -1,4 +1,4 @@
-import app from '../app.js'; // Just a placeholder if needed, but not importing app here
+import app from '../app.js'; 
 import DietPlan from '../models/DietPlan.js';
 import User from '../models/User.js';
 import { generateDietPlan, swapMeal } from '../services/deepseekService.js';
@@ -10,9 +10,9 @@ export const createDietPlan = async (req, res) => {
 
         const plan = await generateDietPlan(user);
 
-        console.log("Saving Diet Plan:", JSON.stringify(plan, null, 2)); // Debug log
+        console.log("Saving Diet Plan:", JSON.stringify(plan, null, 2)); 
 
-        // Save to DB
+       
         const dietPlan = await DietPlan.create({
             userId: req.user.uid,
             date: new Date().toISOString().split('T')[0],
@@ -21,7 +21,7 @@ export const createDietPlan = async (req, res) => {
 
         res.json(dietPlan);
     } catch (error) {
-        console.error("Error creating diet plan:", error); // Debug log
+        console.error("Error creating diet plan:", error); 
         res.status(500).json({ error: error.message });
     }
 };

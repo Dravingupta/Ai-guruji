@@ -9,8 +9,7 @@ export const sendMessage = async (req, res) => {
 
         const responseText = await chatWithCoach(user, history || [], message);
 
-        // Save to history (optional: could save full conversation or just last interactions)
-        // For now, we return the response and let client manage session state or save here if needed
+      
 
         res.json({ text: responseText });
     } catch (error) {
