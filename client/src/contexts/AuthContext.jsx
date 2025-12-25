@@ -8,26 +8,42 @@ const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null); 
-    const [userProfile, setUserProfile] = useState(null); 
+    const [user, setUser] = useState(null);
+    const [userProfile, setUserProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-            setUser(firebaseUser);
+            console.log('🔐 Auth state changed:', firebaseUser ? `User: ${firebaseUser.email}` : 'No user');
+
             if (firebaseUser) {
                 try {
+                    console.log('📡 Fetching profile for UID:', firebaseUser.uid);
                     const profile = await getProfile();
+                    console.log('✅ Profile fetched successfully:', profile);
+                    // Set both user and profile together to avoid race condition
                     setUserProfile(profile);
+                    setUser(firebaseUser);
                 } catch (err) {
-                    console.error("Error fetching profile:", err);
+                    // If profile doesn't exist (404), that's expected for new users
+                    // Set userProfile to null so they can create one
+                    console.error("❌ Error fetching profile:", err);
+                    console.log('Response status:', err.response?.status);
+                    console.log('Response data:', err.response?.data);
+                    setUserProfile(null);
+                    setUser(firebaseUser);
                     setError(err.message);
+                } finally {
+                    // Only set loading to false after profile fetch completes
+                    console.log('🏁 Setting loading to false');
+                    setLoading(false);
                 }
             } else {
+                setUser(null);
                 setUserProfile(null);
+                setLoading(false);
             }
-            setLoading(false);
         });
         return () => unsubscribe();
     }, []);
