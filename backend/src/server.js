@@ -1,4 +1,4 @@
-import 'dotenv/config'; // Load env vars before anything else
+import 'dotenv/config'; 
 import connectDB from './config/database.js';
 import initializeFirebase from './config/firebase.js';
 import app from './app.js';
