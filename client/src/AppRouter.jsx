@@ -37,16 +37,12 @@ const ProtectedRoute = ({ children, requireProfile = true }) => {
 const PublicOnlyRoute = ({ children }) => {
     const { user, userProfile, loading } = useAuth();
 
-    console.log('🛣️ PublicOnlyRoute - loading:', loading, 'user:', !!user, 'userProfile:', userProfile);
-
     if (loading) return <LoadingScreen />;
 
     if (user) {
         if (userProfile) {
-            console.log('✅ User has profile, redirecting to dashboard');
             return <Navigate to="/dashboard" replace />;
         } else {
-            console.log('⚠️ User has no profile, redirecting to profile creation');
             return <Navigate to="/profile" replace />;
         }
     }
