@@ -41,7 +41,7 @@ const LandingPage = ({ onGoogleLogin, onEmailLoginClick }) => {
                             onClick={onGoogleLogin}
                             className="flex items-center justify-center gap-3 bg-white text-gray-800 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 px-8 py-4 rounded-xl font-bold shadow-sm transition-all transform hover:-translate-y-1 w-full sm:w-auto"
                         >
-                            <Chrome className="w-5 h-5 text-red-500" />
+                            <img src="https://developers.google.com/identity/images/g-logo.png" alt="" className='h-6 w-6' />
                             Continue with Google
                         </button>
                         <button
