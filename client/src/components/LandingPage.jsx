@@ -168,37 +168,7 @@ const LandingPage = ({ onGoogleLogin, onEmailLoginClick }) => {
                         Made with ❤️ by <span className="font-semibold text-indigo-600 dark:text-indigo-400">Dravin Gupta</span>
                     </p>
 
-                    <div className="flex justify-center gap-5 mt-2">
-
-                        <a
-                            href="https://github.com/dravingupta"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                fill="currentColor"
-                                viewBox="0 0 24 24"
-                                className="w-6 h-6">
-                                <path d="M12 .5C5.73.5.5 5.74.5 12.02c0 5.1 3.29 9.43 7.86 10.96.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.55-3.87-1.55-.53-1.36-1.3-1.72-1.3-1.72-1.06-.73.08-.72.08-.72 1.18.08 1.8 1.2 1.8 1.2 1.04 1.8 2.74 1.28 3.41.98.1-.76.41-1.28.74-1.58-2.56-.29-5.26-1.29-5.26-1.29-5.26-1.29.63 1.6.23 2.79.11 3.08.74.81 1.19 1.85 1.19 3.12 0 4.45-2.7 5.44-5.28 5.72.42.37.8 1.11.8 2.25v3.34c0 .32.21.67.8.56A10.54 10.54 0 0 0 23.5 12C23.5 5.74 18.26.5 12 .5z" />
-                            </svg>
-                        </a>
-
-                        <a
-                            href="https://www.linkedin.com/in/dravingupta/"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                fill="currentColor"
-                                viewBox="0 0 24 24"
-                                className="w-6 h-6">
-                                <path d="M4.98 3.5C4.98 4.88 3.86 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1 4.98 2.12 4.98 3.5zM.24 8.98H4.7V24H.24V8.98zM8.42 8.98H12.7v2.05h.06c.6-1.14 2.07-2.34 4.27-2.34 4.56 0 5.4 3 5.4 6.9V24h-4.46v-7.5c0-1.79-.03-4.1-2.5-4.1-2.5 0-2.88 1.95-2.88 3.97V24H8.42V8.98z" />
-                            </svg>
-                        </a>
-
-                    </div>
+                   
 
                     <p className="text-gray-400 dark:text-gray-500 text-xs mt-2">
                         © {new Date().getFullYear()} Indian AI Coach. All rights reserved.
