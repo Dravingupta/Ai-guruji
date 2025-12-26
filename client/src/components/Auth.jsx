@@ -49,7 +49,7 @@ const Auth = () => {
                     onClick={handleGoogleLogin}
                     className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-3 px-4 rounded-lg transition duration-200 shadow-sm"
                 >
-                    <Chrome className="w-5 h-5 text-red-500" />
+                    <img src="https://developers.google.com/identity/images/g-logo.png" alt="" className='h-20 w-20' />
                     Continue with Google
                 </button>
 
