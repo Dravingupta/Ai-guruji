@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { ChefHat, X, Clock, CheckCircle, Circle, Utensils, RefreshCw } from 'lucide-react';
 
-// --- Recipe Modal Component ---
 const RecipeModal = ({ meal, onClose }) => {
     if (!meal) return null;
 
