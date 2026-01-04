@@ -5,7 +5,6 @@ const LandingPage = ({ onGoogleLogin, onEmailLoginClick }) => {
     return (
         <div className="min-h-screen bg-white font-inter text-gray-900 selection:bg-indigo-100 selection:text-indigo-900">
 
-            {/* Navbar */}
             <nav className="border-b border-gray-100 sticky top-0 bg-white/80 backdrop-blur-md z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
                     <div className="flex items-center gap-2">
@@ -165,7 +164,15 @@ const LandingPage = ({ onGoogleLogin, onEmailLoginClick }) => {
                 <div className="max-w-7xl mx-auto px-4 text-center space-y-3">
 
                     <p className="text-gray-700 dark:text-gray-300 text-sm font-medium">
-                        Made with ❤️ by <span className="font-semibold text-indigo-600 dark:text-indigo-400">Dravin Gupta</span>
+Made with ❤️ by{" "}
+<a
+  href="https://drg-rho.vercel.app/"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+>
+  Dravin Gupta
+</a>
                     </p>
 
                    
