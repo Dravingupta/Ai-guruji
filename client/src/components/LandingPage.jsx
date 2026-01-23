@@ -165,7 +165,8 @@ const LandingPage = ({ onGoogleLogin, onEmailLoginClick }) => {
                 <div className="max-w-7xl mx-auto px-4 text-center space-y-3">
 
                     <p className="text-gray-700 dark:text-gray-300 text-sm font-medium">
-                        Made with ❤️ by <span className="font-semibold text-indigo-600 dark:text-indigo-400">Dravin Gupta</span>
+                        Made with ❤️ by <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                            Dravin Gupta</span>
                     </p>
 
                    
