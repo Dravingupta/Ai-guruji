@@ -1,230 +1,99 @@
 import React, { useState } from 'react';
-import { Clock, TrendingUp, CheckSquare, Square, Dumbbell, Target } from 'lucide-react';
-
-export const AddWorkoutModal = ({ onClose, onSave, weight }) => {
-    const [name, setName] = useState('');
-    const [duration, setDuration] = useState('');
-    const [intensity, setIntensity] = useState('moderate');
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!name || !duration) return;
-
-       
-        const baseRates = { light: 3.5, moderate: 7, intense: 11 };
-        const rate = baseRates[intensity] || 7;
-        const weightFactor = weight / 70; // normalize
-        const estBurn = Math.round(parseInt(duration) * rate * weightFactor);
-
-        onSave({
-            id: "manual_wo_" + Math.random().toString(36).substr(2, 9),
-            source: 'manual',
-            name,
-            durationMinutes: parseInt(duration),
-            intensity,
-            estimatedCaloriesBurned: estBurn
-        });
-        onClose();
-    };
-
-    const inputClass = "w-full rounded-xl px-3 py-2 text-sm outline-none border transition-colors duration-200 bg-white text-gray-900 border-gray-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:bg-slate-900 dark:text-gray-100 dark:border-slate-700 dark:focus:border-indigo-400 dark:focus:ring-indigo-400";
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm z-[60]">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-xl shadow-xl p-5 animate-in fade-in zoom-in-95 duration-200 border border-gray-100 dark:border-slate-800">
-                <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Log Extra Activity</h3>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Activity Name</label>
-                        <input
-                            className={inputClass}
-                            value={name} onChange={e => setName(e.target.value)} required placeholder="e.g. Evening Jog"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Duration (minutes)</label>
-                        <input
-                            type="number" className={inputClass}
-                            value={duration} onChange={e => setDuration(e.target.value)} required placeholder="e.g. 30"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Intensity</label>
-                        <select
-                            className={inputClass}
-                            value={intensity} onChange={e => setIntensity(e.target.value)}
-                        >
-                            <option value="light">Light (Walking, Yoga)</option>
-                            <option value="moderate">Moderate (Jogging, Cycling)</option>
-                            <option value="intense">Intense (Sprinting, HIIT)</option>
-                        </select>
-                    </div>
-                    <div className="flex gap-2 pt-2">
-                        <button type="button" onClick={onClose} className="flex-1 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 py-2 rounded hover:bg-gray-200 dark:hover:bg-slate-700 transition">Cancel</button>
-                        <button type="submit" className="flex-1 bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition">Add Log</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    );
-};
-
-
-const WorkoutCard = ({
-    plan, manualWorkouts, completedExerciseIds, onToggleExercise, onAddManualWorkout, userWeight
+import { Activity, Check, ChevronDown, Clock, Dumbbell, Flame, Footprints, Plus, Target } from 'lucide-react';
+import { Button, Choice, Field, Modal, Tag } from './ui';
+export const AddWorkoutModal = ({
+  onClose,
+  onSave,
+  weight = 70
 }) => {
-    const [showAddModal, setShowAddModal] = useState(false);
-
-    const total = plan.exercises.length;
-    const doneAI = completedExerciseIds.filter(id => {
-        return plan.exercises.some(ex => ex.id === id);
-    }).length;
-
-    const progress = total > 0 ? Math.round((doneAI / total) * 100) : 0;
-
-    const DEFAULT_AI_BURN = 40;
-
-    return (
-        <div className="flex flex-col h-full bg-gray-50/50 dark:bg-slate-900/50 relative">
-
-            <div className="p-4 grid grid-cols-3 gap-3 bg-white dark:bg-slate-900 border-b border-gray-100 dark:border-slate-800">
-
-                <div className="col-span-3 sm:col-span-1 bg-indigo-100 dark:bg-indigo-900/40 p-3 rounded-lg flex flex-col items-center justify-center text-center border border-indigo-200 dark:border-indigo-800/50">
-                    <Target className="w-4 h-4 text-indigo-700 dark:text-indigo-300 mb-1" />
-                    <span className="text-sm font-bold text-indigo-900 dark:text-indigo-100 line-clamp-1">
-                        {plan.focus || "Full Body"}
-                    </span>
-                </div>
-
-                <div className="bg-gray-50 dark:bg-slate-800 p-3 rounded-lg flex flex-col items-center justify-center text-center border border-gray-100 dark:border-slate-700">
-                    <Clock className="w-4 h-4 text-gray-500 dark:text-gray-400 mb-1" />
-                    <span className="text-sm font-bold text-gray-800 dark:text-gray-200">{plan.duration}</span>
-                </div>
-                <div className="bg-orange-50 dark:bg-orange-900/20 p-3 rounded-lg flex flex-col items-center justify-center text-center border border-orange-100 dark:border-orange-800/30">
-                    <TrendingUp className="w-4 h-4 text-orange-600 dark:text-orange-400 mb-1" />
-                    <span className="text-sm font-bold text-gray-800 dark:text-gray-200 capitalize">{plan.difficulty}</span>
-                </div>
-            </div>
-
-            <div className="overflow-y-auto flex-1 p-4 space-y-6">
-
-                <div>
-                    <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 pl-1">Warm Up</h3>
-                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 p-3 shadow-sm">
-                        <ul className="space-y-2">
-                            {plan.warmup.map((w, i) => (
-                                <li key={i} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
-                                    <span className="text-indigo-400 font-bold">•</span>
-                                    {w}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </div>
-
-                <div>
-                    <div className="flex justify-between items-end mb-2 pl-1">
-                        <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Main Circuit</h3>
-                        <span className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">{progress}% Complete</span>
-                    </div>
-
-                    <div className="space-y-3">
-                        {plan.exercises.map((ex) => {
-                            const isDone = completedExerciseIds.includes(ex.id);
-                            return (
-                                <div
-                                    key={ex.id}
-                                    className={`p-3 rounded-xl border transition-all ${isDone
-                                            ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-900/30 opacity-80'
-                                            : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 shadow-sm'
-                                        }`}
-                                >
-                                    <div className="flex gap-3">
-                                        <button
-                                            onClick={() => onToggleExercise(ex.id, ex.estimatedCalories || DEFAULT_AI_BURN)}
-                                            className={`mt-0.5 shrink-0 transition-colors ${isDone ? 'text-green-600 dark:text-green-500' : 'text-gray-300 dark:text-slate-600 hover:text-indigo-600 dark:hover:text-indigo-400'}`}
-                                        >
-                                            {isDone ? <CheckSquare className="w-6 h-6" /> : <Square className="w-6 h-6" />}
-                                        </button>
-
-                                        <div className="flex-1">
-                                            <div className="flex justify-between items-start">
-                                                <h4 className={`text-sm font-bold ${isDone ? 'text-gray-500 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200'}`}>
-                                                    {ex.name}
-                                                </h4>
-                                                <span className="text-xs font-bold bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded ml-2 whitespace-nowrap">
-                                                    {ex.sets} x {ex.reps}
-                                                </span>
-                                            </div>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{ex.description}</p>
-                                            {ex.notes && <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-1 italic">Tip: {ex.notes}</p>}
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                <div>
-                    <div className="flex items-center justify-between mb-3 border-t border-gray-100 dark:border-slate-800 pt-4">
-                        <h4 className="text-sm font-bold text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                            <Dumbbell className="w-4 h-4" />
-                            Extra Activity Log
-                        </h4>
-                    </div>
-
-                    {manualWorkouts.length === 0 ? (
-                        <p className="text-xs text-gray-400 dark:text-gray-600 italic pl-1">No extra workouts today.</p>
-                    ) : (
-                        <div className="space-y-3">
-                            {manualWorkouts.map((wo) => {
-                                const isDone = completedExerciseIds.includes(wo.id);
-                                return (
-                                    <div key={wo.id} className={`border rounded-xl p-3 flex justify-between items-center transition-colors ${isDone ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-900/30' : 'bg-gray-50 dark:bg-slate-800 border-gray-100 dark:border-slate-700'}`}>
-                                        <div>
-                                            <div className="flex gap-2 items-center mb-0.5">
-                                                <h4 className={`text-sm font-bold text-gray-800 dark:text-gray-200 ${isDone ? 'line-through opacity-70' : ''}`}>{wo.name}</h4>
-                                            </div>
-                                            <div className="flex gap-2 text-xs text-gray-500 dark:text-gray-400 font-medium">
-                                                <span>{wo.durationMinutes} mins</span>
-                                                <span>•</span>
-                                                <span>~{wo.estimatedCaloriesBurned} kcal</span>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={() => onToggleExercise(wo.id, wo.estimatedCaloriesBurned)}
-                                            className={`shrink-0 transition ${isDone ? 'text-green-600 dark:text-green-500' : 'text-gray-300 dark:text-slate-600 hover:text-green-500'}`}
-                                        >
-                                            {isDone ? <CheckSquare className="w-6 h-6" /> : <Square className="w-6 h-6" />}
-                                        </button>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
-
-                <div>
-                    <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 pl-1">Cooldown</h3>
-                    <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-100 dark:border-slate-800 p-3 shadow-sm">
-                        <ul className="space-y-2">
-                            {plan.cooldown.map((w, i) => (
-                                <li key={i} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
-                                    <span className="text-green-400 font-bold">•</span>
-                                    {w}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            {showAddModal && (
-                <AddWorkoutModal onClose={() => setShowAddModal(false)} onSave={onAddManualWorkout} weight={userWeight} />
-            )}
-        </div>
-    );
+  const [name, setName] = useState('');
+  const [duration, setDuration] = useState('');
+  const [intensity, setIntensity] = useState('moderate');
+  return <Modal title="Every move counts." eyebrow="YOUR ACTIVITY JOURNAL" onClose={onClose}>
+  <p className="muted modal-description">A walk, a gym session, or a little movement between meetings.</p>
+  <form className="form-stack" onSubmit={event => {
+      event.preventDefault();
+      if (!name.trim() || Number(duration) <= 0) return;
+      const minutes = Math.round(Number(duration));
+      const rate = {
+        light: 3.5,
+        moderate: 7,
+        intense: 11
+      }[intensity];
+      onSave({
+        id: 'manual_wo_' + Math.random().toString(36).slice(2, 11),
+        source: 'manual',
+        name: name.trim(),
+        durationMinutes: minutes,
+        intensity,
+        estimatedCaloriesBurned: Math.round(minutes * rate * ((Number(weight) || 70) / 70))
+      });
+      onClose();
+    }}>
+    <Field label="What got you moving?"><input autoFocus value={name} onChange={event => setName(event.target.value)} placeholder="e.g. Evening walk" required /></Field>
+    <Field label="Duration (minutes)"><input type="number" min="1" max="1440" step="1" value={duration} onChange={event => setDuration(event.target.value)} placeholder="30" required /></Field>
+    <div className="field">
+      <span className="field-label">How did it feel?</span>
+      <div className="choices">{['light', 'moderate', 'intense'].map(value => <Choice key={value} selected={intensity === value} onClick={() => setIntensity(value)}>{value.charAt(0).toUpperCase() + value.slice(1)}</Choice>)}</div>
+      <small className="field-hint">Calorie burn is an estimate based on duration, intensity, and your weight.</small>
+    </div>
+    <div className="modal-actions">
+      <Button variant="secondary" type="button" onClick={onClose}>Cancel</Button>
+      <Button type="submit">Log activity <Plus size={17} /></Button>
+    </div>
+  </form>
+</Modal>;
 };
-
+const WorkoutCard = ({
+  plan,
+  manualWorkouts = [],
+  completedExerciseIds = [],
+  onToggleExercise,
+  onAddManualWorkout,
+  userWeight,
+  readOnly = false
+}) => {
+  const [showAdd, setShowAdd] = useState(false);
+  const exercises = plan.exercises || [];
+  const done = exercises.filter(exercise => completedExerciseIds.includes(exercise.id)).length;
+  const estimatedBurn = exercises.reduce((total, exercise) => total + Number(exercise.estimatedCaloriesBurned || exercise.estimatedCalories || (exercise.durationMinutes || 5) * 6), 0);
+  const progress = exercises.length ? done / exercises.length * 100 : 0;
+  return <div className="workout-content">
+  <section className="training-session-hero">
+    <div className="session-copy"><p className="eyebrow">{exercises.length ? 'YOUR SESSION / LET’S GET MOVING' : 'RECOVERY IS PART OF PROGRESS'}</p><h2>{plan.focus || plan.dayName || 'Your workout'}<span>.</span></h2><div className="session-metrics"><span><Clock size={18} /><strong>{plan.duration || 'At your pace'}</strong>duration</span><span><Target size={18} /><strong>{plan.difficulty || 'Your level'}</strong>intensity</span><span><Flame size={18} /><strong>~{estimatedBurn} kcal</strong>estimated burn</span></div></div>
+    <div className="session-visual"><img src="/images/athlete.png" alt="" /><div className="session-progress" role="progressbar" aria-label="Session completion" aria-valuemin={0} aria-valuemax={exercises.length || 1} aria-valuenow={done} style={{ '--session-progress': `${progress}%` }}><div><strong>{done}<small>/{exercises.length}</small></strong><span>COMPLETED</span></div></div></div>
+  </section>
+  <div className="routine-grid">{[['Warm up', plan.warmup], ['Cool down', plan.cooldown]].map(([title, items]) => <details className="routine-detail" key={title}><summary><span><span className="routine-dot" />{title}<small>{(items || []).length} movements</small></span><ChevronDown size={17} /></summary>{items?.length ? <ul>{items.map((item, index) => <li key={index}>{item}</li>)}</ul> : <p className="routine-empty">No movements listed for this session.</p>}</details>)}</div>
+  <div className="exercise-heading"><div><p className="eyebrow">ONE MOVEMENT AT A TIME</p><h3>{exercises.length ? 'Your exercise lineup' : 'Take a breather'}</h3></div><span>{done} / {exercises.length} complete</span></div>
+  {!exercises.length && <p className="recovery-message">No exercises are scheduled in this saved session. Give yourself room to recover.</p>}
+  <div className="exercise-list">{exercises.map((exercise, index) => {
+        const complete = completedExerciseIds.includes(exercise.id);
+        const movement = /walk|run|jog|cycle|cardio|jump/i.test(exercise.name) ? 'cardio' : /plank|stretch|yoga|crunch|core/i.test(exercise.name) ? 'control' : 'strength';
+        const Icon = movement === 'cardio' ? Footprints : movement === 'control' ? Activity : Dumbbell;
+        const calories = exercise.estimatedCaloriesBurned || exercise.estimatedCalories;
+        return <article className={`exercise-card ${complete ? 'is-done' : ''}`} key={exercise.id}>
+      <div className={`movement-visual movement-${movement}`} aria-hidden="true"><Icon size={38} strokeWidth={1.25} /><span>{String(index + 1).padStart(2, '0')}</span></div>
+      <div className="exercise-info"><div className="exercise-card-heading"><span className="eyebrow">{movement === 'control' ? 'CORE & CONTROL' : movement.toUpperCase()}</span><button disabled={readOnly} className={`completion-toggle ${complete ? 'is-checked' : ''}`} aria-label={`Mark ${exercise.name} as ${complete ? 'incomplete' : 'complete'}`} aria-pressed={complete} onClick={() => onToggleExercise(exercise.id)}>{complete && <Check size={17} />}</button></div><h3>{exercise.name}</h3><div className="exercise-prescription">{exercise.sets && <span><b>{exercise.sets}</b> sets</span>}{exercise.reps && <span><b>{exercise.reps}</b> reps</span>}{exercise.durationMinutes && <span><b>{exercise.durationMinutes}</b> min</span>}{calories > 0 && <span><Flame size={14} />~{calories} kcal</span>}</div>{(exercise.description || exercise.notes) && <details className="exercise-guidance"><summary>Form & guidance <ChevronDown size={14} /></summary>{exercise.description && <p>{exercise.description}</p>}{exercise.notes && <p className="exercise-note">{exercise.notes}</p>}</details>}</div>
+    </article>;
+      })}</div>
+  <div className="journal-section">
+    <div className="section-heading">
+      <div>
+        <p className="eyebrow">BEYOND THE PLAN</p>
+        <h3>Extra movement</h3>
+      </div>
+      <Button hidden={readOnly} variant="secondary" onClick={() => setShowAdd(true)}><Plus size={15} /> Log activity</Button>
+    </div>
+    {manualWorkouts.length ? <div className="manual-list">{manualWorkouts.map(workout => <div className="manual-row" key={workout.id}>
+        <span className="journal-icon"><Dumbbell size={17} /></span>
+        <div>
+          <strong>{workout.name}</strong>
+          <small>{workout.durationMinutes} min · ~{workout.estimatedCaloriesBurned} kcal</small>
+        </div>
+        <button disabled={readOnly} className={`completion-toggle ${completedExerciseIds.includes(workout.id) ? 'is-checked' : ''}`} aria-label={`Toggle ${workout.name} completion`} aria-pressed={completedExerciseIds.includes(workout.id)} onClick={() => onToggleExercise(workout.id)}>{completedExerciseIds.includes(workout.id) && <Check size={17} />}</button>
+      </div>)}</div> : <p className="journal-empty">{readOnly ? 'No extra movement was logged for this day.' : 'Took the stairs? Went for a walk? The little things belong here too.'}</p>}
+  </div>
+  {showAdd && <AddWorkoutModal onClose={() => setShowAdd(false)} onSave={onAddManualWorkout} weight={userWeight} />}
+</div>;
+};
 export default WorkoutCard;

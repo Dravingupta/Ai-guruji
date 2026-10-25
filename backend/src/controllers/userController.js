@@ -12,7 +12,9 @@ export const getProfile = async (req, res) => {
 
 export const createOrUpdateProfile = async (req, res) => {
     try {
-        const profileData = req.body;
+        const profileData = { ...req.body };
+        // Progress preferences have their own endpoint; stale profile edits must not reset them.
+        delete profileData.weighInFrequency;
         // Ensure UID matches token
         profileData.uid = req.user.uid;
 

@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
     age: Number,
     height: Number,
     weight: Number,
+    weighInFrequency: { type: String, enum: ['daily', 'weekly', 'when_ready', 'off'], default: 'weekly' },
     gender: String,
     dietaryPreference: String,
     region: String,

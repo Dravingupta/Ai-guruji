@@ -2,6 +2,14 @@
 
 An intelligent, AI-powered fitness and nutrition coach specifically designed for Indian users. Get personalized diet plans, home workout routines, and real-time coaching powered by advanced AI technology.
 
+The interface has been redesigned with an athletic dark visual system, lime accents, responsive navigation, and new layouts across every screen. See [design notes](docs/DESIGN.md) for styling ownership and verification.
+
+## Architecture and future changes
+
+AI agents should start with [AGENTS.md](AGENTS.md), then use the [architecture and change reference](docs/ARCHITECTURE.md) for runtime flows, every source file's responsibility, API/data contracts, browser storage, configuration, known gaps, and a task-to-file change map. The reference describes the audited implementation and takes precedence over older feature/setup claims below when they differ.
+
+Copy [backend/.env.example](backend/.env.example) to `backend/.env` and [client/.env.example](client/.env.example) to `client/.env`, then replace the credential placeholders. Use the same Firebase project for both packages. Existing `.env` files should be edited in place rather than overwritten. Real `.env` files are ignored by Git; the example templates are trackable.
+
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![React](https://img.shields.io/badge/React-18.2.0-61dafb.svg)
 ![Node.js](https://img.shields.io/badge/Node.js-Express-green.svg)
@@ -59,7 +67,7 @@ An intelligent, AI-powered fitness and nutrition coach specifically designed for
 - **Framework**: Express 4.18.2
 - **Database**: MongoDB with Mongoose 8.0.0
 - **Authentication**: Firebase Admin SDK 12.0.0
-- **AI Service**: Groq API (Llama 3.3 70B Versatile)
+- **AI Service**: Groq API (`GROQ_MODEL`, default `openai/gpt-oss-120b`)
 - **CORS**: Enabled for frontend communication
 
 ### Infrastructure
@@ -174,6 +182,7 @@ MONGODB_URI=mongodb://localhost:27017/ai-fitness-coach
 
 # Groq AI API
 GROQ_API_KEY=your_groq_api_key_here
+GROQ_MODEL=openai/gpt-oss-120b
 
 # Firebase Admin SDK
 FIREBASE_PROJECT_ID=your-project-id

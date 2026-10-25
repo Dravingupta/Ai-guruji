@@ -1,13 +1,14 @@
+import { withLatestWeight } from '../services/profileContextService.js';
 import ChatHistory from '../models/ChatHistory.js';
 import User from '../models/User.js';
 import { chatWithCoach } from '../services/deepseekService.js';
 
 export const sendMessage = async (req, res) => {
     try {
-        const { message, history } = req.body;
+        const { message, history, planContext } = req.body;
         const user = await User.findOne({ uid: req.user.uid });
 
-        const responseText = await chatWithCoach(user, history || [], message);
+        const responseText = await chatWithCoach(await withLatestWeight(user, req.user.uid), history || [], message, planContext);
 
       
 

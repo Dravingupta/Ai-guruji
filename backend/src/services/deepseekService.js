@@ -1,22 +1,14 @@
 import axios from 'axios';
+import { normalizeDietPlan, normalizeMeal } from './dietPlanValidation.js';
+import { buildCoachPrompt, getGreetingResponse } from './coachPrompt.js';
+import { CHAT_SCOPE_PROMPT, OFF_TOPIC_REPLY, PLAN_REQUEST_REPLY, buildScopeMessage, parseChatScope } from './chatScope.js';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const MODEL = 'llama-3.3-70b-versatile';
+const DEFAULT_MODEL = 'openai/gpt-oss-120b';
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 // --- Fallback Data Generators ---
-const getFallbackDietPlan = () => ({
-    totalCalories: 2100,
-    meals: [
-        { id: generateId(), name: "Masala Oats", type: "breakfast", calories: 350, proteinGrams: 12, carbsGrams: 55, fatsGrams: 8, shortDescription: "Spiced oatmeal with veg", recipeDetail: { ingredients: [{ name: "Oats", quantity: "50g" }, { name: "Onion", quantity: "1 small" }, { name: "Tomato", quantity: "1 small" }, { name: "Spices", quantity: "to taste" }], steps: ["Sauté veg", "Add oats and water", "Cook till thickened"], prepTime: "5m", cookTime: "10m" } },
-        { id: generateId(), name: "Rajma Chawal", type: "lunch", calories: 650, proteinGrams: 25, carbsGrams: 90, fatsGrams: 15, shortDescription: "Kidney beans with rice", recipeDetail: { ingredients: [{ name: "Rajma", quantity: "1 cup" }, { name: "Rice", quantity: "1.5 cups" }, { name: "Spices", quantity: "mix" }, { name: "Onion", quantity: "1" }], steps: ["Cook rajma", "Serve with steamed rice"], prepTime: "10m", cookTime: "30m" } },
-        { id: generateId(), name: "Roasted Chana", type: "snack", calories: 150, proteinGrams: 8, carbsGrams: 20, fatsGrams: 4, shortDescription: "Crunchy snack", recipeDetail: { ingredients: [{ name: "Roasted Chana", quantity: "1 handful" }], steps: ["Ready to eat"], prepTime: "0m", cookTime: "0m" } },
-        { id: generateId(), name: "Paneer Bhurji & Roti", type: "dinner", calories: 450, proteinGrams: 22, carbsGrams: 40, fatsGrams: 20, shortDescription: "Scrambled cottage cheese", recipeDetail: { ingredients: [{ name: "Paneer", quantity: "100g" }, { name: "Onion", quantity: "1" }, { name: "Tomato", quantity: "1" }, { name: "Spices", quantity: "to taste" }], steps: ["Sauté masala", "Add crumbled paneer"], prepTime: "10m", cookTime: "15m" } }
-    ],
-    tips: ["Stay hydrated (3-4L water/day).", "Note: This is a fallback plan (AI service busy)."]
-});
-
 const getFallbackWorkoutPlan = (startDateStr) => {
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     return {
@@ -36,20 +28,7 @@ const getFallbackWorkoutPlan = (startDateStr) => {
     };
 };
 
-const getFallbackMeal = (currentMeal) => ({
-    id: generateId(),
-    name: `Alternative to ${currentMeal.name}`,
-    type: currentMeal.type,
-    calories: currentMeal.calories,
-    proteinGrams: 20,
-    carbsGrams: 30,
-    fatsGrams: 10,
-    shortDescription: "Balanced alternative meal",
-    recipeDetail: { ingredients: [{ name: "Whole grains", quantity: "1 serving" }, { name: "Protein source", quantity: "100g" }, { name: "Vegetables", quantity: "1 cup" }], steps: ["Combine ingredients", "Cook thoroughly"], prepTime: "10m", cookTime: "15m" }
-});
-
-
-const callDeepSeek = async (messages, systemPrompt = '') => {
+const callDeepSeek = async (messages, systemPrompt = '', jsonOutput = false, requestOptions = {}) => {
     // Check for Groq API Key
     if (!process.env.GROQ_API_KEY || process.env.GROQ_API_KEY === 'your_groq_api_key') {
         throw new Error('Groq API Key missing');
@@ -58,31 +37,38 @@ const callDeepSeek = async (messages, systemPrompt = '') => {
     const allMessages = systemPrompt
         ? [{ role: 'system', content: systemPrompt }, ...messages]
         : messages;
+    const model = process.env.GROQ_MODEL?.trim() || DEFAULT_MODEL;
 
     try {
         console.log("Calling Groq API:", {
             url: GROQ_API_URL,
-            model: MODEL,
-            key: process.env.GROQ_API_KEY ? `${process.env.GROQ_API_KEY.substring(0, 10)}...` : 'MISSING'
+            model
         });
 
         const response = await axios.post(
             GROQ_API_URL,
-            { model: MODEL, messages: allMessages },
             {
+                model,
+                messages: allMessages,
+                ...(jsonOutput ? { response_format: { type: 'json_object' } } : {}),
+                ...requestOptions
+            },
+            {
+                timeout: 60000,
                 headers: {
                     'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
                     'Content-Type': 'application/json'
                 }
             }
         );
-        return response.data.choices[0].message.content;
+        const choice = response.data.choices[0];
+        if (choice.finish_reason === 'length' || !choice.message?.content?.trim()) throw new Error('AI response was incomplete');
+        return choice.message.content;
     } catch (error) {
         console.error('Groq API Error Details:', {
             status: error.response?.status,
-            statusText: error.response?.statusText,
-            data: error.response?.data,
-            message: error.message
+            code: error.response?.data?.error?.code || error.code,
+            model
         });
         throw new Error('AI service temporarily unavailable');
     }
@@ -121,9 +107,17 @@ export const generateDietPlan = async (profile) => {
         let budgetInstruction = profile.budgetLevel === 'low' ? 'Strictly Low Budget (dal, roti, staples)...' : profile.budgetLevel === 'medium' ? 'Medium Budget...' : 'Flexible Budget...';
 
         const prompt = `
-        Create a detailed daily diet plan for an Indian user.
+        Create a complete daily diet plan for an Indian user.
+        Include exactly FOUR meals, in this order: breakfast, lunch, snack, dinner.
+        Give each meal a distinct name, portion quantities, complete recipe, and numeric estimated nutrition.
+        The totalCalories must equal the sum of all four meals. Never omit dinner.
+        Follow the saved dietary preference and exclude listed allergens, including ingredients in recipes.
         Context:
         - User: ${profile.name}, Region: ${profile.region}, Goal: ${profile.goal}
+        - Age: ${profile.age}, Height: ${profile.height} cm, Weight: ${profile.weight} kg
+        - Activity: ${profile.activityLevel}, Dietary preference: ${profile.dietaryPreference}
+        - Macro mode: ${profile.macroMode}; custom targets: ${JSON.stringify(profile.customMacros || {})}
+        - Preferences: ${profile.notes || 'None'}, Allergy notes: ${profile.allergyNotes || 'None'}
         - Budget: ${budgetInstruction}
         - Allergies: ${profile.allergies?.join(', ') || 'None'}
         
@@ -135,14 +129,14 @@ export const generateDietPlan = async (profile) => {
         }
         `;
 
-        const response = await callDeepSeek([{ role: 'user', content: prompt }], 'You are an expert Indian nutritionist. JSON only.');
-        const parsed = parseJSONResponse(response);
+        const response = await callDeepSeek([{ role: 'user', content: prompt }], 'You are an expert Indian nutritionist. JSON only.', true);
+        const parsed = normalizeDietPlan(parseJSONResponse(response));
         parsed.meals = parsed.meals.map(m => ({ ...m, id: generateId() }));
         return parsed;
 
     } catch (error) {
-        console.error("Diet generation failed, using fallback:", error.message);
-        return getFallbackDietPlan();
+        console.error("Diet generation failed:", error.message);
+        throw new Error('A complete meal plan could not be created. Please try again.');
     }
 };
 
@@ -170,13 +164,13 @@ export const swapMeal = async (profile, currentMeal) => {
         }
         `;
 
-        const response = await callDeepSeek([{ role: 'user', content: prompt }], 'You are an expert Indian nutritionist. JSON only.');
-        const parsed = parseJSONResponse(response);
+        const response = await callDeepSeek([{ role: 'user', content: prompt }], 'You are an expert Indian nutritionist. JSON only.', true);
+        const parsed = normalizeMeal(parseJSONResponse(response), currentMeal.type);
         parsed.id = generateId();
         return parsed;
     } catch (error) {
-        console.error("Meal swap failed, using fallback:", error.message);
-        return getFallbackMeal(currentMeal);
+        console.error("Meal swap failed:", error.message);
+        throw new Error('A meal alternative could not be created. Please try again.');
     }
 };
 
@@ -185,15 +179,19 @@ export const generateWeeklyWorkoutPlan = async (profile, startDateStr) => {
         const prompt = `
         Create a 7-DAY workout plan starting ${startDateStr}.
         Goal: ${profile.goal}, Location: ${profile.workoutPreference}.
+        Activity level: ${profile.activityLevel}, Age: ${profile.age}.
+        Return exactly 7 entries in chronological order, beginning on ${startDateStr}.
+        dayName must match the actual weekday for each date. Include a meaningful focus (e.g. Upper body strength), not the weekday as focus.
+        Include appropriate recovery days with an empty exercises array, and clear warmup/cooldown instructions for training days.
         Output JSON format ONLY:
-        { "weekPlan": [{ "dayName": "...", "duration": "...", "difficulty": "...", "warmup": ["..."], "exercises": [{ "name": "...", "sets": "...", "reps": "...", "description": "...", "estimatedCalories": number }], "cooldown": ["..."] }] }
+        { "weekPlan": [{ "dayName": "...", "focus": "...", "duration": "...", "difficulty": "...", "warmup": ["..."], "exercises": [{ "name": "...", "sets": "...", "reps": "...", "description": "...", "estimatedCalories": number }], "cooldown": ["..."] }] }
         `;
 
-        const response = await callDeepSeek([{ role: 'user', content: prompt }], 'You are an expert fitness trainer. JSON only.');
+        const response = await callDeepSeek([{ role: 'user', content: prompt }], 'You are an expert fitness trainer. JSON only.', true);
         const parsed = parseJSONResponse(response);
         return parsed.weekPlan.map(day => ({
             ...day,
-            focus: day.dayName,
+            focus: day.focus || day.dayName,
             exercises: day.exercises.map(e => ({ ...e, id: generateId() }))
         }));
     } catch (error) {
@@ -206,30 +204,44 @@ export const generateWeeklyWorkoutPlan = async (profile, startDateStr) => {
     }
 };
 
-export const chatWithCoach = async (profile, history, message) => {
+export const chatWithCoach = async (profile, history, message, planContext) => {
+    const greeting = getGreetingResponse(profile, message);
+    if (greeting) return greeting;
     try {
-        const systemPrompt = `You are an expert Indian Fitness Coach. User: ${profile.name}, Goal: ${profile.goal}, Region: ${profile.region}. Be encouraging but strict.`;
+        const systemPrompt = buildCoachPrompt(profile, planContext);
 
         // 1. Sanitize history
-        const cleanHistory = history
+        const cleanHistory = (Array.isArray(history) ? history : [])
             .map(msg => ({
                 role: (msg.role === 'model' || msg.role === 'assistant') ? 'assistant' : 'user',
-                content: (msg.text || msg.content || '').trim()
+                content: (msg.text || msg.content || msg.parts?.map(part => part.text || '').join('') || '').trim()
             }))
-            .filter(msg => msg.content.length > 0); // Remove empty messages
+            .filter(msg => msg.content.length > 0).slice(-12); // Keep recent conversation context
 
         // 2. Sanitize current message
         const userMessageContent = (message || '').trim();
         if (!userMessageContent) throw new Error("Message content cannot be empty");
 
+        // Resolve relevance before providing profile data or generating an answer.
+        // Unknown/failed decisions fall through to the connection error, never to an unrestricted answer.
+        const scopeResponse = await callDeepSeek(
+            [{ role: 'user', content: buildScopeMessage(cleanHistory, userMessageContent) }],
+            CHAT_SCOPE_PROMPT,
+            true,
+            { max_completion_tokens: 1024 }
+        );
+        const scope = parseChatScope(scopeResponse);
+        if (scope === 'off_topic') return OFF_TOPIC_REPLY;
+        if (scope === 'plan_request') return PLAN_REQUEST_REPLY;
+
         const messages = [...cleanHistory, { role: 'user', content: userMessageContent }];
 
-        const responseText = await callDeepSeek(messages, systemPrompt);
+        const responseText = await callDeepSeek(messages, systemPrompt, false, { max_completion_tokens: 1536 });
 
         // Clean thinking blocks if present
         return responseText.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '').trim();
     } catch (error) {
         console.error("Chat failed:", error.message);
-        return "I'm having trouble connecting right now, but keep pushing! Drink some water and stay consistent.";
+        return "I'm having trouble connecting right now. Please try your question again in a moment.";
     }
 };

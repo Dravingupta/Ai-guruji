@@ -5,6 +5,7 @@ import userRoutes from './routes/userRoutes.js';
 import dietRoutes from './routes/dietRoutes.js';
 import workoutRoutes from './routes/workoutRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
+import progressRoutes from './routes/progressRoutes.js';
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/diet', dietRoutes);
 app.use('/api/workout', workoutRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/progress', progressRoutes);
 
 // Health check
 app.get('/', (req, res) => {

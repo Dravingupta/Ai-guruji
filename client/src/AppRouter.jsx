@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { useTheme } from './contexts/ThemeContext';
 import { saveProfile } from './services/backendService';
@@ -10,10 +10,10 @@ import ProfileForm from './components/ProfileForm';
 import { RefreshCw } from 'lucide-react';
 
 const LoadingScreen = () => (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900">
-        <div className="text-center">
-            <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin mx-auto mb-4" />
-            <p className="text-gray-500 font-medium">Loading fitness data...</p>
+    <div className="app-loading">
+        <div>
+            <RefreshCw className="spin" size={26} />
+            <p>Finding your momentum…</p>
         </div>
     </div>
 );
@@ -53,12 +53,19 @@ const PublicOnlyRoute = ({ children }) => {
 const DashboardWrapper = () => {
     const { userProfile, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const section = location.pathname === '/profile' ? 'profile' : location.pathname === '/progress' ? 'progress' : location.state?.section || 'overview';
 
     return (
         <Dashboard
+            key={userProfile.uid}
             user={userProfile}
             onLogout={logout}
-            onEditProfile={() => window.location.href = '/profile'}
+            initialSection={section}
+            onViewProfile={() => navigate('/profile')}
+            onEditProfile={() => navigate('/profile/edit')}
+            onSectionChange={next => navigate(next === 'profile' ? '/profile' : next === 'progress' ? '/progress' : '/dashboard', { state: { section: next } })}
             theme={theme}
             onToggleTheme={toggleTheme}
         />
@@ -69,16 +76,18 @@ const ProfileFormWrapper = () => {
     const { user, userProfile, refreshProfile } = useAuth();
     const navigate = useNavigate();
     const [saving, setSaving] = React.useState(false);
+    const [saveError, setSaveError] = React.useState('');
 
     const handleSave = async (profileData) => {
         setSaving(true);
+        setSaveError('');
         try {
             await saveProfile(profileData);
             await refreshProfile();
-            navigate('/dashboard');
+            navigate(userProfile ? '/profile' : '/dashboard');
         } catch (error) {
             console.error("Failed to save profile:", error);
-            alert("Failed to save profile. Please try again.");
+            setSaveError('Your changes couldn’t be saved. Check your connection and try again.');
         } finally {
             setSaving(false);
         }
@@ -87,11 +96,21 @@ const ProfileFormWrapper = () => {
     return (
         <ProfileForm
             uid={user?.uid}
+            email={user?.email}
+            displayName={user?.displayName}
             initialData={userProfile}
             mode={userProfile ? 'edit' : 'create'}
             onSave={handleSave}
+            saving={saving}
+            saveError={saveError}
+            onCancel={() => navigate('/profile')}
         />
     );
+};
+
+const ProfileRoute = () => {
+    const { userProfile } = useAuth();
+    return userProfile ? <DashboardWrapper /> : <ProfileFormWrapper />;
 };
 
 const AppRouter = () => {
@@ -115,9 +134,17 @@ const AppRouter = () => {
 
                 <Route path="/profile" element={
                     <ProtectedRoute requireProfile={false}>
+                        <ProfileRoute />
+                    </ProtectedRoute>
+                } />
+
+                <Route path="/profile/edit" element={
+                    <ProtectedRoute>
                         <ProfileFormWrapper />
                     </ProtectedRoute>
                 } />
+
+                <Route path="/progress" element={<ProtectedRoute><DashboardWrapper /></ProtectedRoute>} />
 
                 <Route path="/dashboard" element={
                     <ProtectedRoute>

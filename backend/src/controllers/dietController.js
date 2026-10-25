@@ -1,3 +1,4 @@
+import { withLatestWeight } from '../services/profileContextService.js';
 import app from '../app.js'; 
 import DietPlan from '../models/DietPlan.js';
 import User from '../models/User.js';
@@ -8,7 +9,7 @@ export const createDietPlan = async (req, res) => {
         const user = await User.findOne({ uid: req.user.uid });
         if (!user) return res.status(404).json({ error: 'User profile not found' });
 
-        const plan = await generateDietPlan(user);
+        const plan = await generateDietPlan(await withLatestWeight(user, req.user.uid));
 
         console.log("Saving Diet Plan:", JSON.stringify(plan, null, 2)); 
 

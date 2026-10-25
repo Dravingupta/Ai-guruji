@@ -33,8 +33,8 @@ export const getWorkoutHistory = async () => {
 };
 
 // Chat APIs
-export const chatWithCoach = async (message, history) => {
-    const response = await api.post('/chat/message', { message, history });
+export const chatWithCoach = async (message, history, planContext) => {
+    const response = await api.post('/chat/message', { message, history, planContext });
     return response.data.text;
 };
 
@@ -62,3 +62,9 @@ export const analyzeBodyImage = async (base64Image) => {
         analysis: 'Image analysis currently unavailable'
     };
 };
+
+
+// Optional weight check-ins are account-owned server records.
+export const getProgress = async () => (await api.get('/progress')).data;
+export const saveWeightCheckIn = async (date, entry) => (await api.put(`/progress/check-ins/${date}`, entry)).data;
+export const saveProgressPreferences = async frequency => (await api.put('/progress/preferences', { frequency })).data;

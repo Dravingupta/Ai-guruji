@@ -1,3 +1,4 @@
+import { withLatestWeight } from '../services/profileContextService.js';
 import WorkoutPlan from '../models/WorkoutPlan.js';
 import User from '../models/User.js';
 import { generateWeeklyWorkoutPlan } from '../services/deepseekService.js';
@@ -7,7 +8,7 @@ export const createWorkoutPlan = async (req, res) => {
         const { startDate } = req.body;
         const user = await User.findOne({ uid: req.user.uid });
 
-        const weekPlan = await generateWeeklyWorkoutPlan(user, startDate || new Date());
+        const weekPlan = await generateWeeklyWorkoutPlan(await withLatestWeight(user, req.user.uid), startDate || new Date());
 
         const savedPlans = await Promise.all(weekPlan.map(day =>
             WorkoutPlan.create({

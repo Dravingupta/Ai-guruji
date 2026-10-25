@@ -1,291 +1,153 @@
 import React, { useState } from 'react';
-import { ChefHat, X, Clock, CheckCircle, Circle, Utensils, RefreshCw } from 'lucide-react';
-
-const RecipeModal = ({ meal, onClose }) => {
-    if (!meal) return null;
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-lg max-h-[85vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200 border border-gray-100 dark:border-slate-800">
-                <div className="bg-indigo-600 dark:bg-indigo-700 p-4 flex justify-between items-center text-white shrink-0">
-                    <div>
-                        <span className="text-xs uppercase opacity-80 font-bold tracking-wider">{meal.type}</span>
-                        <h3 className="text-xl font-bold">{meal.name}</h3>
-                    </div>
-                    <button onClick={onClose} className="p-1 hover:bg-white/20 rounded-full transition">
-                        <X className="w-6 h-6" />
-                    </button>
-                </div>
-                <div className="p-6 overflow-y-auto text-gray-900 dark:text-gray-100">
-                    <div className="flex justify-between mb-6 bg-indigo-50 dark:bg-indigo-900/30 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800">
-                        <div className="text-center">
-                            <span className="block text-xl font-bold text-indigo-700 dark:text-indigo-300">{meal.calories}</span>
-                            <span className="text-[10px] uppercase font-bold text-indigo-400 dark:text-indigo-400">kcal</span>
-                        </div>
-                        <div className="w-px bg-indigo-200 dark:bg-indigo-700"></div>
-                        <div className="text-center">
-                            <span className="block text-sm font-bold text-gray-800 dark:text-gray-200">{meal.proteinGrams || '-'}g</span>
-                            <span className="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400">Protein</span>
-                        </div>
-                        <div className="text-center">
-                            <span className="block text-sm font-bold text-gray-800 dark:text-gray-200">{meal.carbsGrams || '-'}g</span>
-                            <span className="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400">Carbs</span>
-                        </div>
-                        <div className="text-center">
-                            <span className="block text-sm font-bold text-gray-800 dark:text-gray-200">{meal.fatsGrams || '-'}g</span>
-                            <span className="text-[10px] uppercase font-bold text-gray-500 dark:text-gray-400">Fats</span>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-4 mb-6 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-slate-800 p-3 rounded-lg border border-gray-100 dark:border-slate-700">
-                        <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-indigo-500 dark:text-indigo-400" />
-                            <span>Prep: <strong>{meal.recipeDetail.prepTime}</strong></span>
-                        </div>
-                        <div className="w-px bg-gray-300 dark:bg-slate-600"></div>
-                        <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-orange-500 dark:text-orange-400" />
-                            <span>Cook: <strong>{meal.recipeDetail.cookTime}</strong></span>
-                        </div>
-                    </div>
-                    <div className="mb-6">
-                        <h4 className="font-bold text-gray-800 dark:text-white mb-3 border-b dark:border-slate-700 pb-1">Ingredients</h4>
-                        <ul className="space-y-2">
-                            {meal.recipeDetail.ingredients.map((ing, idx) => (
-                                <li key={idx} className="flex justify-between text-sm">
-                                    <span className="text-gray-700 dark:text-gray-300">{ing.name}</span>
-                                    <span className="font-medium text-gray-900 dark:text-white">{ing.quantity}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 className="font-bold text-gray-800 dark:text-white mb-3 border-b dark:border-slate-700 pb-1">Instructions</h4>
-                        <ol className="space-y-4">
-                            {meal.recipeDetail.steps.map((step, idx) => (
-                                <li key={idx} className="flex gap-3 text-sm text-gray-700 dark:text-gray-300">
-                                    <span className="shrink-0 w-6 h-6 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 rounded-full flex items-center justify-center font-bold text-xs">
-                                        {idx + 1}
-                                    </span>
-                                    <p className="pt-0.5">{step}</p>
-                                </li>
-                            ))}
-                        </ol>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+import { ArrowRightLeft, Check, ChefHat, Clock, Coffee, Loader2, Moon, Plus, RefreshCw, Sun, Utensils } from 'lucide-react';
+import { Button, Field, Modal, Tag } from './ui';
+const mealIcons = {
+  breakfast: Coffee,
+  lunch: Sun,
+  dinner: Moon,
+  snack: Utensils
 };
-
-export const AddMealModal = ({ onClose, onSave }) => {
-    const [name, setName] = useState('');
-    const [calories, setCalories] = useState('');
-    const [type, setType] = useState('snack');
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (!name || !calories) return;
-        onSave({
-            id: "manual_" + Math.random().toString(36).substr(2, 9),
-            source: 'manual',
-            name,
-            calories: parseInt(calories),
-            timeOfDay: type,
-        });
-        onClose();
-    };
-
-    const inputClass = "w-full rounded-xl px-3 py-2 text-sm outline-none border transition-colors duration-200 bg-white text-gray-900 border-gray-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:bg-slate-900 dark:text-gray-100 dark:border-slate-700 dark:focus:border-indigo-400 dark:focus:ring-indigo-400";
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm z-[60]">
-            <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-xl shadow-xl p-5 animate-in fade-in zoom-in-95 duration-200 border border-gray-100 dark:border-slate-800">
-                <h3 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Log Food</h3>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Food Name</label>
-                        <input
-                            className={inputClass}
-                            value={name} onChange={e => setName(e.target.value)} required placeholder="e.g. 2 Bananas"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Calories</label>
-                        <input
-                            type="number" className={inputClass}
-                            value={calories} onChange={e => setCalories(e.target.value)} required placeholder="e.g. 200"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Meal Type</label>
-                        <select
-                            className={inputClass}
-                            value={type} onChange={e => setType(e.target.value)}
-                        >
-                            <option value="breakfast">Breakfast</option>
-                            <option value="lunch">Lunch</option>
-                            <option value="dinner">Dinner</option>
-                            <option value="snack">Snack</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
-                    <div className="flex gap-2 pt-2">
-                        <button type="button" onClick={onClose} className="flex-1 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 py-2 rounded hover:bg-gray-200 dark:hover:bg-slate-700 transition">Cancel</button>
-                        <button type="submit" className="flex-1 bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition">Add</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    );
+const RecipeModal = ({
+  meal,
+  onClose
+}) => {
+  const recipe = meal.recipeDetail || {};
+  return <Modal title={meal.name} eyebrow={`${meal.type || 'Meal'} / THE RECIPE`} onClose={onClose} wide>
+  <div className="recipe-stats">
+    <span><strong>{meal.calories ?? '—'}</strong> kcal</span>
+    <span><Clock size={16} /> Prep {recipe.prepTime || '—'}</span>
+    <span><ChefHat size={16} /> Cook {recipe.cookTime || '—'}</span>
+  </div>
+  <div className="recipe-columns">
+    <section>
+      <p className="eyebrow">WHAT YOU’LL NEED</p>
+      <h3>Ingredients</h3>
+      <ul className="ingredient-list">{(recipe.ingredients || []).map((item, index) => <li key={index}>
+          <span>{item.name}</span>
+          <strong>{item.quantity}</strong>
+        </li>)}</ul>
+    </section>
+    <section>
+      <p className="eyebrow">MAKE IT HAPPEN</p>
+      <h3>The method</h3>
+      <ol className="recipe-steps">{(recipe.steps || []).map((item, index) => <li key={index}>
+          <span>{String(index + 1).padStart(2, '0')}</span>
+          <p>{item}</p>
+        </li>)}</ol>
+    </section>
+  </div>
+  <div className="macro-strip">{[['Protein', meal.proteinGrams], ['Carbs', meal.carbsGrams], ['Fats', meal.fatsGrams]].map(([label, value]) => <div key={label}>
+      <span>{label}</span>
+      <strong>
+        {value ?? '—'}
+        <small> g</small>
+      </strong>
+    </div>)}</div>
+</Modal>;
 };
-
-
-const DietCard = ({ plan, manualMeals, completedMealIds, onToggleMeal, onAddManualMeal, onSwapMeal, swappingMealId }) => {
-    const [selectedMeal, setSelectedMeal] = useState(null);
-    const [showAddModal, setShowAddModal] = useState(false);
-
-    return (
-        <div className="flex flex-col h-full relative">
-            <div className="flex-1 space-y-4">
-
-                <div className="space-y-3">
-                    {plan.meals.map((meal) => {
-                        const isCompleted = completedMealIds.includes(meal.id);
-                        const isSwapping = swappingMealId === meal.id;
-
-                        return (
-                            <div
-                                key={meal.id}
-                                className={`
-                  rounded-2xl border transition-all duration-200 
-                  bg-white dark:bg-slate-900 shadow-sm p-4 flex flex-col gap-2 relative overflow-hidden
-                  ${isCompleted ? 'border-green-200 bg-emerald-50/40 dark:bg-emerald-900/10 dark:border-green-900/30' : 'border-gray-100 dark:border-slate-700 hover:shadow-md'}
-                  ${isSwapping ? 'opacity-50 pointer-events-none' : ''}
-                `}
-                            >
-                                {isSwapping && (
-                                    <div className="absolute inset-0 flex items-center justify-center z-10 bg-white/50 dark:bg-slate-900/50 backdrop-blur-[1px]">
-                                        <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin" />
-                                    </div>
-                                )}
-
-                                <div className="flex justify-between items-center">
-                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 uppercase tracking-wide">
-                                        {meal.type}
-                                    </span>
-
-                                    <button
-                                        onClick={() => onToggleMeal(meal.id, meal.calories)}
-                                        className={`shrink-0 transition-colors ${isCompleted ? 'text-green-600 dark:text-green-500' : 'text-gray-300 dark:text-slate-600 hover:text-green-500 dark:hover:text-green-500'}`}
-                                    >
-                                        {isCompleted ? <CheckCircle className="w-6 h-6 fill-green-100 dark:fill-green-900/20" /> : <Circle className="w-6 h-6" />}
-                                    </button>
-                                </div>
-
-                                <div>
-                                    <h4 className={`text-base font-bold text-gray-900 dark:text-white leading-tight mb-1 ${isCompleted ? 'line-through opacity-60' : ''}`}>
-                                        {meal.name}
-                                    </h4>
-                                    <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
-                                        {meal.shortDescription}
-                                    </p>
-                                </div>
-
-                                <div className="mt-2 pt-2 border-t border-gray-50 dark:border-slate-800 flex flex-wrap items-center gap-3 text-xs md:text-sm">
-                                    <span className="font-semibold bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-gray-200 rounded-full px-2.5 py-0.5">
-                                        {meal.calories} kcal
-                                    </span>
-                                    <div className="hidden sm:flex items-center gap-2 text-gray-500 dark:text-gray-400 font-medium">
-                                        {meal.proteinGrams && <span>{meal.proteinGrams}g P</span>}
-                                        {meal.carbsGrams && <span>{meal.carbsGrams}g C</span>}
-                                        {meal.fatsGrams && <span>{meal.fatsGrams}g F</span>}
-                                    </div>
-
-                                    <div className="ml-auto flex items-center gap-4">
-                                        <button
-                                            className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 text-xs font-medium flex items-center gap-1 transition"
-                                            onClick={() => setSelectedMeal(meal)}
-                                        >
-                                            <ChefHat className="w-3 h-3" /> Recipe
-                                        </button>
-                                        <button
-                                            className="text-gray-400 hover:text-indigo-500 dark:text-slate-500 dark:hover:text-indigo-400 text-xs transition"
-                                            onClick={() => onSwapMeal && onSwapMeal(meal.id)}
-                                            disabled={isCompleted}
-                                        >
-                                            Swap
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-
-                <div>
-                    <div className="flex items-center justify-between mb-3 border-t border-gray-100 dark:border-slate-800 pt-4">
-                        <h4 className="text-sm font-bold text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                            <Utensils className="w-4 h-4" />
-                            Manual Food Log
-                        </h4>
-                    </div>
-
-                    {manualMeals.length === 0 ? (
-                        <p className="text-xs text-gray-400 dark:text-gray-600 italic pl-1">No extra food logged today.</p>
-                    ) : (
-                        <div className="space-y-3">
-                            {manualMeals.map((meal) => {
-                                const isCompleted = completedMealIds.includes(meal.id);
-                                return (
-                                    <div key={meal.id} className={`rounded-xl border p-3 flex justify-between items-center transition-colors ${isCompleted
-                                            ? 'bg-emerald-50/40 dark:bg-emerald-900/10 border-green-200 dark:border-green-900/30'
-                                            : 'bg-white dark:bg-slate-900 border-gray-100 dark:border-slate-700'
-                                        }`}>
-                                        <div>
-                                            <div className="flex gap-2 items-center mb-1">
-                                                <span className="text-[10px] bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded uppercase font-bold">{meal.timeOfDay}</span>
-                                                <h4 className={`text-sm font-bold text-gray-800 dark:text-gray-200 ${isCompleted ? 'line-through opacity-70' : ''}`}>{meal.name}</h4>
-                                            </div>
-                                            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">{meal.calories} kcal</span>
-                                        </div>
-                                        <button
-                                            onClick={() => onToggleMeal(meal.id, meal.calories)}
-                                            className={`shrink-0 transition ${isCompleted ? 'text-green-600 dark:text-green-500' : 'text-gray-300 dark:text-slate-600 hover:text-green-500'}`}
-                                        >
-                                            {isCompleted ? <CheckCircle className="w-6 h-6 fill-green-100 dark:fill-green-900/20" /> : <Circle className="w-6 h-6" />}
-                                        </button>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-                </div>
-
-                {plan.tips && plan.tips.length > 0 && (
-                    <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-xl border border-yellow-100 dark:border-yellow-900/30 mt-4">
-                        <h5 className="text-xs font-bold text-yellow-800 dark:text-yellow-500 uppercase mb-2">Coach's Tips</h5>
-                        <ul className="space-y-1">
-                            {plan.tips.map((tip, idx) => (
-                                <li key={idx} className="text-xs text-yellow-900 dark:text-yellow-200 flex gap-2">
-                                    <span className="mt-1 w-1.5 h-1.5 rounded-full bg-yellow-400 dark:bg-yellow-600 shrink-0"></span>
-                                    {tip}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-            </div>
-
-            {selectedMeal && (
-                <RecipeModal meal={selectedMeal} onClose={() => setSelectedMeal(null)} />
-            )}
-
-            {showAddModal && (
-                <AddMealModal onClose={() => setShowAddModal(false)} onSave={onAddManualMeal} />
-            )}
-        </div>
-    );
+export const AddMealModal = ({
+  onClose,
+  onSave
+}) => {
+  const [name, setName] = useState('');
+  const [calories, setCalories] = useState('');
+  const [type, setType] = useState('snack');
+  return <Modal title="A little extra? Log it." eyebrow="YOUR FOOD JOURNAL" onClose={onClose}>
+  <p className="muted modal-description">A quick record of what you’ve eaten. An estimate is a useful starting point.</p>
+  <form className="form-stack" onSubmit={event => {
+      event.preventDefault();
+      if (!name.trim() || Number(calories) <= 0) return;
+      onSave({
+        id: 'manual_' + Math.random().toString(36).slice(2, 11),
+        source: 'manual',
+        name: name.trim(),
+        calories: Math.round(Number(calories)),
+        timeOfDay: type
+      });
+      onClose();
+    }}>
+    <Field label="What did you have?"><input autoFocus value={name} onChange={event => setName(event.target.value)} placeholder="e.g. A banana and a handful of almonds" required /></Field>
+    <div className="form-grid">
+      <Field label="Estimated calories (kcal)"><input type="number" min="1" step="1" value={calories} onChange={event => setCalories(event.target.value)} placeholder="200" required /></Field>
+      <Field label="Meal"><select value={type} onChange={event => setType(event.target.value)}>{['breakfast', 'lunch', 'dinner', 'snack', 'other'].map(value => <option key={value} value={value}>{value.charAt(0).toUpperCase() + value.slice(1)}</option>)}</select></Field>
+    </div>
+    <div className="modal-actions">
+      <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
+      <Button type="submit">Add to my day <Plus size={17} /></Button>
+    </div>
+  </form>
+</Modal>;
 };
-
+const DietCard = ({
+  plan,
+  manualMeals = [],
+  completedMealIds = [],
+  onToggleMeal,
+  onAddManualMeal,
+  onSwapMeal,
+  swappingMealId,
+  onRegenerate,
+  canRegenerate = false,
+  readOnly = false
+}) => {
+  const [selectedMeal, setSelectedMeal] = useState(null);
+  const [showAdd, setShowAdd] = useState(false);
+  const order = ['breakfast', 'lunch', 'snack', 'dinner'];
+  const slots = order.map(type => ({ type, meal: (plan.meals || []).find(meal => meal.type?.toLowerCase() === type) }));
+  const primarySlots = [...slots];
+  const primaryIds = new Set(slots.map(({ meal }) => meal?.id).filter(Boolean));
+  slots.push(...(plan.meals || []).filter(meal => !primaryIds.has(meal.id)).map(meal => ({ type: meal.type?.toLowerCase() || 'other', meal })));
+  const totals = (plan.meals || []).reduce((result, meal) => ({ calories: result.calories + Number(meal.calories || 0), protein: result.protein + Number(meal.proteinGrams || 0), carbs: result.carbs + Number(meal.carbsGrams || 0), fats: result.fats + Number(meal.fatsGrams || 0) }), { calories: 0, protein: 0, carbs: 0, fats: 0 });
+  const doneCount = primarySlots.filter(({ meal }) => meal && completedMealIds.includes(meal.id)).length;
+  const incomplete = primarySlots.some(({ meal }) => !meal);
+  return <div className="diet-content">
+  <section className="nutrition-summary">
+    <div className="nutrition-summary-copy"><p className="eyebrow">YOUR DAILY MENU</p><h2>Fuel for the whole day<span>.</span></h2><p>Four moments to eat well. Recipes and portions, all in one place.</p><div className="nutrition-totals"><div><strong>{totals.calories.toLocaleString()}<small> kcal</small></strong><span>planned energy · estimated</span></div><div className="nutrition-macro-key">{[['Protein', totals.protein, 'protein'], ['Carbs', totals.carbs, 'carbs'], ['Fats', totals.fats, 'fats']].map(([label, value, key]) => <span key={key}><i className={key} /><strong>{Math.round(value)}g</strong>{label}</span>)}</div></div></div>
+    <div className="nutrition-summary-art" aria-hidden="true"><img src="/images/food.png" alt="" /><span>FAMILIAR FOOD.<br />FRESH MOMENTUM.</span></div>
+  </section>
+  <div className="menu-heading"><div><h3>Your meal lineup</h3><span>{doneCount} of 4 meals logged</span></div><div className="menu-progress" aria-label={`${doneCount} of 4 meals logged`}>{primarySlots.map(({ type, meal }) => <span key={type} className={meal && completedMealIds.includes(meal.id) ? 'done' : ''} />)}</div></div>
+  {incomplete && <div className="incomplete-plan" role="status"><div><strong>This saved plan is missing a meal.</strong><p>{canRegenerate ? 'Create a full day to fill every slot. Meals you’ve logged will stay in your journal.' : 'Empty slots below show what was missing from this saved day.'}</p></div>{canRegenerate && <Button variant="secondary" onClick={onRegenerate}><RefreshCw size={16} /> Create full day</Button>}</div>}
+  <div className="meal-list">{slots.map(({ type, meal }, index) => {
+        const Icon = mealIcons[type] || Utensils;
+        if (!meal) return <article key={type} className="meal-card meal-missing"><div className="meal-category"><span className={`meal-type-icon type-${type}`}><Icon size={24} /></span><span className="eyebrow">{type}</span><span className="meal-index">0{index + 1}</span></div><h3>No {type} saved</h3><p className="meal-description">This meal wasn’t included in the saved plan.</p><span className="meal-missing-label">Awaiting a complete plan</span></article>;
+        const done = completedMealIds.includes(meal.id);
+        const swapping = swappingMealId === meal.id;
+        const energy = Math.max(1, Number(meal.proteinGrams || 0) * 4 + Number(meal.carbsGrams || 0) * 4 + Number(meal.fatsGrams || 0) * 9);
+        return <article key={meal.id} className={`meal-card ${done ? 'is-done' : ''}`}>
+      <div className="meal-category"><span className={`meal-type-icon type-${type}`}><Icon size={24} strokeWidth={1.5} /></span><div><span className="eyebrow">{type}</span><small>{['Start with something good', 'Your midday fuel', 'A little afternoon energy', 'Round out your day'][index] || 'More on your menu'}</small></div><span className="meal-index">0{index + 1}</span></div>
+      <h3>{meal.name}</h3>
+      {meal.shortDescription && <p className="meal-description">{meal.shortDescription}</p>}
+      <div className="meal-nutrition"><strong>{meal.calories ?? '—'} <small>kcal</small></strong><span><b>{meal.proteinGrams ?? '—'}g</b> protein</span><span><b>{meal.carbsGrams ?? '—'}g</b> carbs</span><span><b>{meal.fatsGrams ?? '—'}g</b> fats</span></div>
+      <div className="macro-energy-bar" aria-hidden="true">{[['protein', meal.proteinGrams, 4], ['carbs', meal.carbsGrams, 4], ['fats', meal.fatsGrams, 9]].map(([key, grams, rate]) => <span key={key} className={key} style={{ width: `${Number(grams || 0) * rate / energy * 100}%` }} />)}</div>
+      <div className="meal-actions"><button onClick={() => setSelectedMeal(meal)}><ChefHat size={17} /> Recipe</button><button hidden={readOnly} disabled={done || swapping} onClick={() => onSwapMeal(meal.id)} aria-label={`Swap ${meal.name}`}>{swapping ? <Loader2 size={16} className="spin" /> : <ArrowRightLeft size={16} />}{swapping ? 'Swapping…' : 'Swap'}</button><button disabled={readOnly} className={`meal-log-button ${done ? 'logged' : ''}`} aria-label={`${done ? 'Unmark' : 'Mark'} ${meal.name} as eaten`} aria-pressed={done} onClick={() => onToggleMeal(meal.id, meal.calories)}>{done ? <Check size={16} /> : <Plus size={16} />}{done ? 'Logged' : readOnly ? 'Not logged' : 'Log meal'}</button></div>
+    </article>;
+      })}</div>
+  <div className="journal-section">
+    <div className="section-heading">
+      <div>
+        <p className="eyebrow">THE REST OF YOUR DAY</p>
+        <h3>Food journal</h3>
+      </div>
+      <Button hidden={readOnly} variant="secondary" onClick={() => setShowAdd(true)}><Plus size={15} /> Log food</Button>
+    </div>
+    {manualMeals.length ? <div className="manual-list">{manualMeals.map(meal => <div className="manual-row" key={meal.id}>
+        <span className="journal-icon"><Utensils size={17} /></span>
+        <div>
+          <strong>{meal.name}</strong>
+          <small>{meal.timeOfDay} · {meal.calories} kcal</small>
+        </div>
+        <button disabled={readOnly} className={`completion-toggle ${completedMealIds.includes(meal.id) ? 'is-checked' : ''}`} aria-label={`Toggle ${meal.name} as eaten`} aria-pressed={completedMealIds.includes(meal.id)} onClick={() => onToggleMeal(meal.id, meal.calories)}>{completedMealIds.includes(meal.id) && <Check size={17} />}</button>
+      </div>)}</div> : <p className="journal-empty">{readOnly ? 'No extra food was logged for this day.' : 'A snack, a coffee, something extra. There’s room to record it here.'}</p>}
+  </div>
+  {plan.tips?.length > 0 && <aside className="coach-note">
+    <ChefHat size={21} />
+    <div>
+      <p className="eyebrow">A NOTE FOR YOUR DAY</p>
+      {plan.tips.map((tip, index) => <p key={index}>{tip}</p>)}
+    </div>
+  </aside>}
+  {selectedMeal && <RecipeModal meal={selectedMeal} onClose={() => setSelectedMeal(null)} />}
+  {showAdd && <AddMealModal onClose={() => setShowAdd(false)} onSave={onAddManualMeal} />}
+</div>;
+};
 export default DietCard;

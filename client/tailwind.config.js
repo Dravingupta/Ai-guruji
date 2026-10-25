@@ -8,7 +8,8 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Inter', 'sans-serif'],
+                sans: ['DM Sans', 'sans-serif'],
+                display: ['Barlow Condensed', 'sans-serif'],
             },
         },
     },
