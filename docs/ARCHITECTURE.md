@@ -16,6 +16,8 @@ Scoped trainer-follow-up update, 25 October 2026 (supersedes the broader chat ro
 
 Scoped progress update, 25 October 2026: Overview/Nutrition/Coach use today; Training previews today plus six upcoming days. `/progress` has Trends and Day history, with historical plans shown read-only and no historical generation. Weight check-ins (measured/reused/skipped) and cadence are account-owned MongoDB records. Charts use actual measurements only; latest measured weight is used for future AI requests without overwriting the profile baseline or regenerating current plans. Activity history remains device-local. An empty today no longer erases yesterday's activity streak. See [product vision](PRODUCT_VISION.md) for delivered behavior and recommended finish order.
 
+Scoped public-tour/light-theme update, 25 October 2026: `/how-it-works` is a lazy-loaded public product walkthrough accessible without signing in and also from the dashboard. It presents the problem, user journey, four real app screenshots with synthetic data, trainer-follow-up scope, stack/engineering decisions, and honest storage boundaries. Landing and walkthrough both offer theme toggles. Light appearance now uses a consistent sand/linen canvas, terracotta actions, and olive completion/session panels; dark tokens are preserved. Overview has an arched athlete image on desktop and a compact movement graphic on phones. The former alternating pastel fills were removed, and the light product screenshots were refreshed. Overview has no date badge; Nutrition and Training keep their date context. No API, authentication, or storage contracts changed.
+
 ## Navigation
 
 - [1. Project at a glance](#1-project-at-a-glance)
@@ -74,7 +76,8 @@ This map covers all application source and tracked configuration files in the au
 | --- | --- |
 | `client/package.json` | Dependencies and `dev`, `build`, `preview`, `test` scripts |
 | `client/.env.example` | Copyable browser configuration template; VITE_API_URL and Firebase web app fields |
-| `client/index.html` | `#root`, dark initial class, page metadata, Google Fonts URLs, module entry |
+| `client/index.html` | `#root`, dark initial class, page metadata, favicon link, Google Fonts URLs, module entry |
+| `client/public/favicon.svg` | Scalable lime activity-mark favicon matching the shared Brand logo |
 | `client/src/main.jsx` | React root; wraps `App` in `React.StrictMode` |
 | `client/src/App.jsx` | `AuthProvider` → `ThemeProvider` → `AppRouter` |
 | `client/src/AppRouter.jsx` | Route guards; loading screen; dashboard/profile prop adapters; `handleSave` |
@@ -99,7 +102,9 @@ This map covers all application source and tracked configuration files in the au
 
 | File | Responsibility / principal edit locations |
 | --- | --- |
-| `client/src/components/LandingPage.jsx` | Marketing page; receives two auth-navigation callbacks; static preview UI |
+| `client/src/components/LandingPage.jsx` | Marketing page; auth callbacks, theme toggle, links to the public walkthrough |
+| `client/src/components/HowItWorks.jsx` | Public product story, user journey, screenshot gallery/native enlargement dialog, stack and storage disclosure; reads auth only to select its CTA destination |
+| `client/public/images/product/*.webp` | Four optimized real UI screenshots (Overview, Nutrition, Training, Progress), using isolated synthetic data; refresh when the UI changes |
 | `client/src/components/Auth.jsx` | Firebase Google login, email sign-in/sign-up, error display; route change is driven by auth state |
 | `client/src/components/ProfileOverview.jsx` | Read-only identity, body measurements, goals, preferences, notes, device-local activity snapshot, explicit Edit callback |
 | `client/src/components/ProfileForm.jsx` | Three-step create/edit form; inline validation; allergy/macro state; Firebase identity defaults; saving/cancel/error props |
@@ -179,12 +184,15 @@ The provider suppresses rendering children during initial loading, so the router
 | URL | Guard and result |
 | --- | --- |
 | `/` | Public-only landing; logged-in users redirect to profile or dashboard |
+| `/how-it-works` | Public for signed-out and signed-in visitors; lazy-loaded product walkthrough, no profile requirement |
 | `/auth` | Public-only Firebase login/sign-up; same authenticated redirects |
 | `/profile` | Requires Firebase user; existing profile shows Dashboard/ProfileOverview; missing profile shows onboarding |
 | `/profile/edit` | Requires Firebase user and profile; explicit three-step editor; cancel/save returns to `/profile` |
 | `/progress` | Requires Firebase user and profile; Trends/Day history in dashboard shell |
 | `/dashboard` | Requires Firebase user and profile; otherwise redirects to `/` or `/profile` |
 | Any other path | Redirect to `/` |
+
+The public walkthrough is linked from landing navigation/hero/footer and dashboard sidebar/footer. Its app CTAs go to `/auth` when signed out and `/dashboard` when signed in (the usual profile guard then applies). Screenshot enlargement uses the shared native `Modal`; phone screenshots scroll inside a labelled focusable region. No plan generation or data mutations occur on this route.
 
 Both landing login actions navigate to `/auth`; only the auth screen opens Google popup. Landing auth actions use `window.location.href`; profile view/edit and dashboard section navigation use React Router `navigate`. Dashboard sections use location state on `/dashboard`; profile has its own route. New profile saves go to `/dashboard`, edits return to `/profile`.
 
@@ -512,6 +520,7 @@ Use this table to find the smallest relevant source set. Paths under `client/src
 
 | Requested change | Read/edit first | Related contracts / checks |
 | --- | --- | --- |
+| Public product tour / screenshots | `C/components/HowItWorks.jsx`, `C/public/images/product/`, `C/AppRouter.jsx`; `docs/DESIGN.md` | Public access in both auth states, accurate claims, synthetic-data screenshots, lazy loading, native enlargement dialogs, landing/dashboard links |
 | Landing/auth visuals | `C/components/LandingPage.jsx`, `Auth.jsx` | AppRouter callbacks, shared ui.jsx controls, semantic CSS variables, responsive layout |
 | Progress / weight / history | `C/components/Progress.jsx`, `WeightCheckIn.jsx`, `hooks/useProgress.js`, `utils/progressData.js`, `Dashboard.jsx`; `B/routes/progressRoutes.js`, `controllers/progressController.js`, `models/WeightCheckIn.js`, `services/progressValidation.js`, `profileContextService.js` | Measured vs reused/skipped, UID/date uniqueness, frequency preservation, browser-only activity boundary, date separation, latest-weight AI context |
 | Auth provider / redirects | `C/config/firebase.js`, `contexts/AuthContext.jsx`, `AppRouter.jsx`, `B/config/firebase.js`, `middlewares/authMiddleware.js` | Firebase UID, token interceptor, existing/new profile flows |

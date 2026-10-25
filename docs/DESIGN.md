@@ -13,19 +13,22 @@ Redesign: 25 October 2026. User-selected direction: **athletic dark — graphite
 
 ## Light-theme finish
 
-Refined on 25 October 2026 after feedback about excessive white. Light mode now uses a warm stone canvas (`#e7e7dc`), sage sidebar (`#d7ddcc`), cream surfaces (`#f0f0e5`), and darker ink/secondary text. A forest-green dashboard hero provides a strong anchor. Controls use a subdued sage fill; the completion panel has a gentle green tint. Primary hover, purple accents, and hero text are theme tokens. Dark-mode palette values remain unchanged.
+Reworked on 25 October 2026 after the user rejected the mint/pastel version. Light mode now has a consistent warm fitness identity: sand canvas (`#e9e2d6`), linen sidebar (`#ded6c7`), warm paper cards (`#f4ede1`), charcoal-olive text (`#292c24`), and secondary text (`#58564a`). Terracotta (`#b5472b`, light action text `#fff5e9`) identifies actions; dark rust (`#903923`) identifies links/focus. Deep olive (`#485239`) anchors the checklist and coach panel. The Training session hero uses olive with cream text. The dark theme tokens are unchanged.
 
-Five key text/control color pairs were checked and exceed 4.5:1 contrast; browser inspection covers desktop and mobile with isolated sample data. See [final project recommendations](FINAL_POLISH.md) for the proposed next work.
+Overview has a larger editorial headline and an arched crop of the existing athlete image on desktop. Phones use the movement mark to keep the hero compact and its text unobstructed. Cards share consistent warm neutral surfaces, subtle shadows and borders; thin accents distinguish energy metrics, while olive completion states identify logged meals/exercises. Nutrition, Training, Progress, Profile, coach, dialogs, landing, and the public walkthrough inherit the same system. The walkthrough content/layout is retained, with fresh app screenshots.
+
+Public landing and walkthrough have appearance controls; the saved preference still uses the shared theme provider. Light-specific layout/style rules are centralized under the sand/clay/olive comment in `index.css` and scoped to `:root:not(.dark)`. Avoid introducing unrelated pastel card fills or hardcoded white panels. Checked primary/secondary text pairs on the shared light surfaces exceed 4.5:1 contrast; the primary action pair is 5:1. Olive panels use explicit foreground colors rather than inheriting the body ink.
 
 ## Screens and ownership
 
 | Area | Implementation |
 | --- | --- |
-| Landing | `LandingPage.jsx`: athletic photographic hero, real feature descriptions, three feature panels, working auth and in-page navigation |
+| Landing | `LandingPage.jsx`: athletic photographic hero, real feature descriptions, three feature panels, working auth, theme toggle, and public walkthrough links |
 | Authentication | `Auth.jsx`: split photographic layout on desktop, single column on mobile, Google/email sign-in and signup, show password, loading and inline errors |
 | Profile editor | `ProfileForm.jsx`: three-step sidebar/progress layout, inline validation, selectable goals/diet/allergies, macros, optional body type/notes, saving/cancel states |
 | Profile overview | `ProfileOverview.jsx`: identity, read-only measurements/preferences/goals, local activity summary, explicit Edit button |
-| Overview | `Dashboard.jsx`: greeting/date controls, quick log action, energy/checklist metrics, meal/session previews, real seven-day calorie bars, coach entry |
+| How it works | `HowItWorks.jsx`: public recruiter-friendly story, setup-to-progress journey, four actual screenshots with accessible enlargement, focused-coach example, implementation decisions and storage disclosure |
+| Overview | `Dashboard.jsx`: greeting without a date badge, quick log action, energy/checklist metrics, meal/session previews, real seven-day calorie bars, coach entry |
 | Nutrition | `DietCard.jsx`: photographic daily summary with macro totals, ordered meal lineup and missing-slot recovery, numbered meal cards with macro bars, completion, swaps, recipes, food journal |
 | Training | `WorkoutCard.jsx`: photographic session summary and progress ring, movement icon tiles, exercise completion, expandable form cues/warmup/cooldown, extra movement log; Dashboard owns saved-data week strip |
 | Coach | `ChatCoach.jsx`: conversational message layout, safe basic rich text via ChatMessage, typing state, horizontally scrolling mobile suggestions, textarea, Enter/Shift+Enter support |
@@ -93,8 +96,26 @@ Coach scope refinement: the chat is a trainer follow-up channel. Header, placeho
 
 ## Progress and today/history separation
 
-Overview and Nutrition now use today with a static date tag. Training shows the rolling upcoming seven-day strip; future sessions are view-only. Progress is a primary navigation item and a protected `/progress` route with Trends and Day history. Trends combines actual weigh-in charts, measured change, device-local activity summaries, cadence controls, and an editable journal. History has a date input and recent-day strip, saved nutrition/training tabs, and view-only plan cards. On phones the selected date scrolls into the horizontal strip without moving the page.
+Overview and Nutrition use today. Overview no longer displays a date badge; Nutrition retains a static date tag. Training shows the rolling upcoming seven-day strip; future sessions are view-only. Progress is a primary navigation item and a protected `/progress` route with Trends and Day history. Trends combines actual weigh-in charts, measured change, device-local activity summaries, cadence controls, and an editable journal. History has a date input and recent-day strip, saved nutrition/training tabs, and view-only plan cards. On phones the selected date scrolls into the horizontal strip without moving the page.
 
 Check-in dialogs offer measured, explicitly reused, and not-shared choices. Each choice may include a personal note. Saving replaces the existing dated entry. Only actual measurements affect the chart; no fat-loss claim is derived from the number. Frequency can be daily, weekly, on demand, or paused. Weight records are saved to the account; the UI explicitly distinguishes device-local activity history.
 
 Progress UI review uses synthetic data through a temporary injected API (no production auth bypass). Saved previews: `screenshots/progress-desktop.png`, `progress-mobile.png`, `progress-light.png`, `history-desktop.png`, and `history-mobile.png`. Checked entry/update/reuse/skip, retry after a simulated failed save, cadence selection, history browsing, return to today's overview, and phone navigation/layout. Temporary review entry files/data are removed before delivery. No live authenticated MongoDB writes were tested for this feature.
+
+
+## Public project walkthrough
+
+`/how-it-works` is public for all visitors and lazy-loaded from `AppRouter.jsx`. Landing links to it in navigation, hero, and footer; dashboard links appear in its sidebar and footer. App CTAs respect authentication. The walkthrough explains the actual product purpose, profile → plans → logging/follow-up → progress journey, implementation choices, and current persistence limits. It makes no fabricated user/outcome claims. Its coach conversation is explicitly illustrative.
+
+Product assets are optimized WebP files in `client/public/images/product/`: `overview.webp`, `nutrition.webp`, `training.webp`, and `progress.webp` (about 205 KB combined). They are actual 1280×720 browser captures of the app, using fictional Aarav Sharma and isolated sample plans/measurements. Training demonstrates the existing dark theme; the other three demonstrate the new light palette. Full PNG source captures are `docs/screenshots/fitness-light-overview.png`, `fitness-light-nutrition.png`, `tour-training.png`, and `fitness-light-progress.png`. These static assets must be refreshed when corresponding screens materially change. They are never injected into production user data.
+
+The gallery uses the shared native dialog, labelled images, Escape dismissal, focus return, and a keyboard-focusable horizontal image viewport on phones. Screenshots below the hero load lazily. Public content includes a skip link, semantic headings and navigation, and reduced-motion support. The Overview date badge is removed only from Overview; Training, Nutrition, and history date controls retain their context.
+
+Verification for this finish: production build and existing client test suite; desktop 1280×720 and phone 369×633 browser review in both appearances, tour anchors, screenshot enlargement/dismissal, storage disclosure, landing navigation, and auth CTA destination. Overview/date removal and authenticated layouts used isolated synthetic data; temporary entry files and sample localStorage keys were removed. No live AI calls or authenticated database writes were needed. New preview captures: `how-it-works-light-desktop.png`, `how-it-works-dark-desktop.png`, `how-it-works-mobile.png`, and `colorful-overview-mobile.png`. Older light screenshots in this folder document previous iterations and are superseded by the fitness-light captures.
+
+
+## Warm light-theme verification
+
+Browser review at 1280×720 and 369×633 used isolated synthetic data. Checked Overview, nutrition cards, training/session completion, progress/chart/preferences, profile, coach formatting, mobile navigation, the food logging dialog and Escape dismissal, plus preserved dark appearance. The temporary review entry and its UID-specific localStorage keys were removed. No live model requests, real-account changes, or database writes were involved. Existing client tests and production build pass.
+
+Current previews: `screenshots/fitness-light-overview.png`, `fitness-light-nutrition.png`, `fitness-light-training.png`, `fitness-light-progress.png`, `fitness-light-profile.png`, and `fitness-light-mobile.png`. Public walkthrough source captures remain real app screens with synthetic data; the three light WebP assets were refreshed. The older `colorful-*` captures are historical, not the current palette.

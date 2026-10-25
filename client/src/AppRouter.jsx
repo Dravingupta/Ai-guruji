@@ -9,6 +9,8 @@ import Dashboard from './components/Dashboard';
 import ProfileForm from './components/ProfileForm';
 import { RefreshCw } from 'lucide-react';
 
+const HowItWorks = React.lazy(() => import('./components/HowItWorks'));
+
 const LoadingScreen = () => (
     <div className="app-loading">
         <div>
@@ -125,6 +127,8 @@ const AppRouter = () => {
                         />
                     </PublicOnlyRoute>
                 } />
+
+                <Route path="/how-it-works" element={<React.Suspense fallback={<LoadingScreen />}><HowItWorks /></React.Suspense>} />
 
                 <Route path="/auth" element={
                     <PublicOnlyRoute>

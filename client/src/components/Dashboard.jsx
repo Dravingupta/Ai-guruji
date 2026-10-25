@@ -505,6 +505,7 @@ const Dashboard = ({
       <TextLink onClick={() => changeSection('coach')}>Talk to Guruji</TextLink>
     </div>
     <div className="sidebar-bottom">
+      <a className="sidebar-setting" href="/how-it-works"><ArrowUpRight size={18} /> How it works</a>
       <button className={`sidebar-setting ${activeSection === 'profile' ? 'active' : ''}`} aria-current={activeSection === 'profile' ? 'page' : undefined} onClick={viewProfile}><Settings size={18} /> My profile <ArrowUpRight size={15} /></button>
       <button className="sidebar-setting" onClick={onToggleTheme}>
         {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
@@ -540,7 +541,7 @@ const Dashboard = ({
           <h1>{activeSection === 'progress' ? 'See how far you’ve come.' : activeSection === 'profile' ? 'A little about you.' : activeSection === 'overview' ? <>{greeting}, {firstName}<span className="accent">.</span></> : activeSection === 'meals' ? 'Good food. Your way.' : activeSection === 'workout' ? 'Find your strong.' : 'Let’s talk it through.'}</h1>
           <p>{activeSection === 'progress' ? 'Explore past days, follow your routine, and check in when it suits you.' : activeSection === 'profile' ? 'Your goals, preferences, and progress in one place.' : activeSection === 'overview' ? 'A new day. A little room for progress.' : activeSection === 'meals' ? 'Familiar flavors, thoughtful choices, and room to enjoy it all.' : activeSection === 'workout' ? 'Your session, your pace. Showing up is a good start.' : 'Quick follow-ups about your meals, workouts, and routine.'}</p>
         </div>
-        {['overview', 'meals', 'workout'].includes(activeSection) && <Tag><Calendar size={15} /> {isToday ? 'Today' : 'Upcoming'} · {displayDate(selectedDate)}</Tag>}
+        {['meals', 'workout'].includes(activeSection) && <Tag><Calendar size={15} /> {isToday ? 'Today' : 'Upcoming'} · {displayDate(selectedDate)}</Tag>}
       </div>
       {notice && <div className="error-banner dashboard-notice" role="alert">
         <span>{notice}</span>
@@ -674,7 +675,7 @@ const Dashboard = ({
       {activeSection === 'coach' && <ChatCoach user={user} planContext={{ date: selectedDate, dietPlan: currentDietPlan, workoutPlan: currentWorkoutPlan }} messages={chatHistory} onUpdateMessages={updateChatHistory} />}
       <footer className="dashboard-footer">
         <span>A LITTLE BETTER, EVERY DAY.</span>
-        <span>AI GURUJI / YOUR PERSONAL FITNESS SPACE</span>
+        <a href="/how-it-works">HOW IT WORKS <ArrowUpRight size={13} /></a>
       </footer>
     </main>
   </div>

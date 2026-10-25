@@ -1,17 +1,20 @@
 import React from 'react';
-import { ArrowRight, ArrowUpRight, Check, Dumbbell, Flame, Leaf, MessageCircle, MoveUpRight, Utensils } from 'lucide-react';
-import { Brand, Button, Tag } from './ui';
+import { ArrowRight, ArrowUpRight, Check, Dumbbell, Flame, Leaf, MessageCircle, MoveUpRight, Utensils, Moon, Sun } from 'lucide-react';
+import { Brand, Button, IconButton, Tag } from './ui';
+import { useTheme } from '../contexts/ThemeContext';
 const LandingPage = ({
   onGoogleLogin,
   onEmailLoginClick
-}) => <div className="landing">
+}) => {
+  const { theme, toggleTheme } = useTheme();
+  return <div className="landing">
   <nav className="landing-nav page-width">
     <Brand />
     <div className="landing-links">
-      <a href="#approach">The approach</a>
+      <a href="/how-it-works">How it works</a>
       <a href="#features">What you get</a>
     </div>
-    <Button variant="secondary" onClick={onEmailLoginClick}>Log in <ArrowUpRight size={16} /></Button>
+    <div className="public-nav-actions"><IconButton label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} appearance`} onClick={toggleTheme}>{theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}</IconButton><Button variant="secondary" onClick={onEmailLoginClick}>Log in <ArrowUpRight size={16} /></Button></div>
   </nav>
   <main>
     <section className="landing-hero page-width">
@@ -21,7 +24,7 @@ const LandingPage = ({
         <p>Eat well. Move better. Find your rhythm.<br />Your everyday fitness companion, built for the way India lives.</p>
         <div className="hero-actions">
           <Button onClick={onGoogleLogin}>Find your momentum <ArrowUpRight size={20} /></Button>
-          <a className="hero-secondary" href="#approach">See how it works <ArrowRight size={17} /></a>
+          <a className="hero-secondary" href="/how-it-works">See how it works <ArrowRight size={17} /></a>
         </div>
         <div className="hero-proof">
           <span><Check size={15} /> Real Indian food</span>
@@ -92,8 +95,9 @@ const LandingPage = ({
   </main>
   <footer className="landing-footer page-width">
     <Brand />
-    <p>A little better, every day.</p>
+    <a href="/how-it-works">How it works <ArrowUpRight size={15} /></a>
     <small>© {new Date().getFullYear()} AI Guruji</small>
   </footer>
 </div>;
+};
 export default LandingPage;
