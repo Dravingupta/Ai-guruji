@@ -7,23 +7,20 @@ import LandingPage from './components/LandingPage';
 import Auth from './components/Auth';
 import Dashboard from './components/Dashboard';
 import ProfileForm from './components/ProfileForm';
-import { RefreshCw } from 'lucide-react';
+import StartupScreen from './components/StartupScreen';
 
 const HowItWorks = React.lazy(() => import('./components/HowItWorks'));
 
-const LoadingScreen = () => (
-    <div className="app-loading">
-        <div>
-            <RefreshCw className="spin" size={26} />
-            <p>Finding your momentum…</p>
-        </div>
-    </div>
-);
+const LoadingScreen = () => <StartupScreen phase="page" />;
+const SessionScreen = () => {
+    const { user, error, retrySession, logout } = useAuth();
+    return <StartupScreen phase={user ? 'profile' : 'session'} error={Boolean(error)} onRetry={retrySession} onLogout={user ? logout : undefined} />;
+};
 
 const ProtectedRoute = ({ children, requireProfile = true }) => {
-    const { user, userProfile, loading } = useAuth();
+    const { user, userProfile, loading, error } = useAuth();
 
-    if (loading) return <LoadingScreen />;
+    if (loading || error) return <SessionScreen />;
 
     if (!user) {
         return <Navigate to="/" replace />;
@@ -37,9 +34,9 @@ const ProtectedRoute = ({ children, requireProfile = true }) => {
 };
 
 const PublicOnlyRoute = ({ children }) => {
-    const { user, userProfile, loading } = useAuth();
+    const { user, userProfile, loading, error } = useAuth();
 
-    if (loading) return <LoadingScreen />;
+    if (loading || error) return <SessionScreen />;
 
     if (user) {
         if (userProfile) {

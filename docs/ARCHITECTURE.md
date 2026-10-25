@@ -76,12 +76,12 @@ This map covers all application source and tracked configuration files in the au
 | --- | --- |
 | `client/package.json` | Dependencies and `dev`, `build`, `preview`, `test` scripts |
 | `client/.env.example` | Copyable browser configuration template; VITE_API_URL and Firebase web app fields |
-| `client/index.html` | `#root`, dark initial class, page metadata, favicon link, Google Fonts URLs, module entry |
+| `client/index.html` | `#root` with a static branded loading fallback before React; dark initial class, page metadata, favicon link, Google Fonts URLs, module entry |
 | `client/public/favicon.svg` | Scalable lime activity-mark favicon matching the shared Brand logo |
 | `client/src/main.jsx` | React root; wraps `App` in `React.StrictMode` |
-| `client/src/App.jsx` | `AuthProvider` → `ThemeProvider` → `AppRouter` |
+| `client/src/App.jsx` | `ThemeProvider` → `AuthProvider` → `AppRouter` |
 | `client/src/AppRouter.jsx` | Route guards; loading screen; dashboard/profile prop adapters; `handleSave` |
-| `client/src/contexts/AuthContext.jsx` | Firebase listener; `user`, `userProfile`, `loading`, `error`; `logout`, `refreshProfile`, named `useAuth` |
+| `client/src/contexts/AuthContext.jsx` | Firebase listener; `user`, `userProfile`, `loading`, `error`; `logout`, `refreshProfile`, `retrySession`, named `useAuth`; always renders children and owns cancellable session/profile startup |
 | `client/src/contexts/ThemeContext.jsx` | `theme`, `toggleTheme`, named `useTheme`; localStorage and document `.dark` class |
 | `client/src/hooks/useAuth.js` | Default re-export of context hook; no separate state |
 | `client/src/hooks/useTheme.js` | Default re-export of context hook; no separate state |
@@ -102,6 +102,9 @@ This map covers all application source and tracked configuration files in the au
 
 | File | Responsibility / principal edit locations |
 | --- | --- |
+| `client/src/components/StartupScreen.jsx` | Branded session/backend/page loading and retry/sign-out error states; honest elapsed time, indeterminate animation, public tour escape link |
+| `client/src/utils/backendStartup.js` | Bounded safe-read retries, cancellation/deadlines, owned profile validation, strict missing-profile recognition |
+| `client/test/backend-startup.test.js` | Cold-start failures, HTML responses, exact 404 vs infrastructure errors, UID ownership, hung requests and cancellation |
 | `client/src/components/LandingPage.jsx` | Marketing page; auth callbacks, theme toggle, links to the public walkthrough |
 | `client/src/components/HowItWorks.jsx` | Public product story, user journey, screenshot gallery/native enlargement dialog, stack and storage disclosure; reads auth only to select its CTA destination |
 | `client/public/images/product/*.webp` | Four optimized real UI screenshots (Overview, Nutrition, Training, Progress), using isolated synthetic data; refresh when the UI changes |
@@ -145,6 +148,8 @@ Dashboard logic is organized by symbols: `get*Key`, `initTrackingIfMissing`, `ha
 | `backend/src/routes/dietRoutes.js` | Diet generate/history/swap routes |
 | `backend/src/routes/workoutRoutes.js` | Workout generate/history routes |
 | `backend/src/routes/chatRoutes.js` | Chat message/history routes |
+| `backend/src/controllers/healthController.js` | Public `/api/health` readiness: MongoDB connected and Firebase Admin initialized; no-store JSON; no model call |
+| `backend/test/health.test.js` | Readiness/startup status, public payload and cache policy |
 | `backend/src/controllers/authController.js` | `verifyUser`: profile existence lookup only |
 | `backend/src/controllers/userController.js` | `getProfile`, `createOrUpdateProfile`, `deleteProfile` |
 | `backend/src/controllers/dietController.js` | `createDietPlan`, `getDietHistory`, `swapDietMeal`; also has unused import of `app.js` |
@@ -177,9 +182,13 @@ No tracked test files, CI workflows, migration files, Docker files, or LICENSE f
 
 ### Authentication and routing
 
-`main.jsx` mounts `App`. `AuthProvider` subscribes to `onAuthStateChanged(auth, callback)`. On login it fetches `/users/profile`, sets profile and Firebase user, then clears initial loading. Any profile-fetch failure, including network/500 errors, is treated as an absent profile and stored in `error`. On logout it clears user/profile, but does not erase app localStorage.
+`main.jsx` mounts `App` with `ThemeProvider` outside `AuthProvider`, so startup respects the saved appearance. The HTML root includes a small branded fallback until React mounts. `AuthProvider` always renders its children: router guards show `StartupScreen` during session restoration/profile loading or a retryable connection error, rather than hiding the entire UI. `/how-it-works` is public even during loading/errors.
 
-The provider suppresses rendering children during initial loading, so the router's loading screen generally is not visible during that initial wait. Context `user` is a Firebase user; context `userProfile` is the MongoDB document. `Dashboard` receives **userProfile** as its prop named `user`.
+`onAuthStateChanged` publishes the Firebase user immediately, clears stale profile/error state, and loads `/users/profile`. Only a 404 JSON response with `{ error: 'Profile not found' }` permits onboarding. Network/5xx failures and invalid/HTML/wrong-UID responses retry within **120 seconds**, with **15-second per-attempt limits** and **2.5-second gaps**. Other HTTP errors do not auto-retry. Pending reads are aborted on auth changes, retries, and unmount; revision checks prevent stale account responses from updating state. Initial Firebase restoration has a separate 20-second error timeout. Retry restarts the profile load (or reloads the page if no Firebase identity exists); sign-out clears the state through the auth listener without deleting localStorage.
+
+Signed-out visitors can use the landing/auth/tour while one anonymous bounded `GET /api/health` warm-up runs. It stops when ready, on auth change/unmount, or after the retry window; this is not an ongoing keep-alive. `skipAuth` in the shared Axios interceptor is reserved for this public health read. Profile refresh uses the same safe read/ownership checks and propagates failures to the profile form instead of silently navigating as if successful. No write, generation, swap, or chat request is automatically replayed.
+
+Context `user` is the Firebase user; `userProfile` is the MongoDB document. `Dashboard` receives **userProfile** as its prop named `user`. The startup screen has genuine connection stages/elapsed time and an indeterminate indicator, no fabricated percentage or countdown. After a failure it offers Retry, Sign out when signed in, and the public project walkthrough.
 
 | URL | Guard and result |
 | --- | --- |
@@ -244,7 +253,7 @@ Chat history transport is `{ role, text }`. The backend also accepts `content` a
 
 `server.js` imports `dotenv/config`, calls `connectDB()` without awaiting it, calls `initializeFirebase()`, then listens on `PORT || 5000`. The listener can start before MongoDB is ready. DB connection failure exits with code 1. Firebase initialization errors are logged and swallowed, allowing the server to keep running while protected requests fail.
 
-`app.js` configures CORS with `origin: FRONTEND_URL || '*'` and `credentials: true`, accepts JSON bodies up to `10mb`, mounts route groups, and exposes `GET /` returning `AI Fitness Coach API is running`. This is a process liveness response, not a database/Firebase/Groq readiness check. The JSON limit is not evidence of a functioning image feature.
+`app.js` configures CORS with `origin: FRONTEND_URL || '*'` and `credentials: true`, accepts JSON bodies up to `10mb`, mounts route groups, and exposes `GET /` returning `AI Fitness Coach API is running`. This root response is process liveness only. `GET /api/health` separately returns no-store JSON `{ service: "ai-guruji-api", status: "ready" | "starting" }`: 200 when MongoDB is connected and Firebase Admin has an initialized app, otherwise 503. It is anonymous and performs no database query or model call; it does not verify Groq access or every downstream operation. The JSON limit is not evidence of a functioning image feature.
 
 All `/api` routes listed below require `Authorization: Bearer <Firebase ID token>`. `verifyToken` calls Firebase Admin `verifyIdToken`, sets `{ uid, email }`, and emits 401 `{ error: 'No token provided' }` or `{ error: 'Invalid or expired token' }`. There is no app-issued JWT, cookie session, role/permission layer, or refresh endpoint.
 
@@ -254,6 +263,7 @@ Success responses currently use status 200, including creation. Raw Mongoose doc
 
 | Method / full path | Input | Success result and side effects |
 | --- | --- | --- |
+| `GET /api/health` | None; public, no bearer token needed | 200 ready / 503 starting; JSON service marker and status only, Cache-Control: no-store; no writes or AI calls |
 | `POST /api/auth/verify` | No body needed | `{ uid, email, hasProfile }`; looks up User; creates/updates nothing |
 | `GET /api/users/profile` | None | User document; 404 `{ error: 'Profile not found' }` if absent |
 | `POST /api/users/profile` | Profile fields | User document; forces body `uid` to token UID and upserts by UID |
@@ -506,8 +516,7 @@ These are source-observed behavior or direct consequences of the code, not claim
 | Profile changes | Save does not invalidate/regenerate cached plans, even when goals, allergies, or weight change. Old plans/targets remain. |
 | Day boundaries | UTC keys differ from Indian calendar date early morning; no midnight timer advances selectedDate automatically. |
 | Cache handling | Unversioned JSON.parse/storage writes have no recovery/quota handling; no cleanup on logout or profile delete. |
-| Auth error routing | Any profile-fetch error is treated as missing profile; infrastructure failure may redirect existing users to setup. Initial loading hides children rather than showing the router loader. |
-| Startup / readiness | Listener does not await DB; Firebase init errors are swallowed; `GET /` does not check external dependencies. |
+| Startup / readiness | Listener does not await DB and Firebase init errors are swallowed. The new `/api/health` stays 503 until MongoDB is connected and Firebase Admin is initialized; root `/` is liveness only. Health does not test provider access or arbitrary DB operations. |
 | Deletes | Profile-only delete leaves Firebase identity, server plans/history, and browser data; no UI/helper currently invokes it. |
 | UI claims | Gemini Vision/body-image analysis is a stub; coach text cannot execute swaps; no chart library, progress weight history, or enforceable six-day gym split exists. |
 | Visual assets / fonts | Hero images are local generated assets. Fonts are Google-hosted with sans-serif fallbacks; loading external fonts requires network access. Dark is the new default; saved light preference remains honored. |
@@ -523,6 +532,7 @@ Use this table to find the smallest relevant source set. Paths under `client/src
 | Public product tour / screenshots | `C/components/HowItWorks.jsx`, `C/public/images/product/`, `C/AppRouter.jsx`; `docs/DESIGN.md` | Public access in both auth states, accurate claims, synthetic-data screenshots, lazy loading, native enlargement dialogs, landing/dashboard links |
 | Landing/auth visuals | `C/components/LandingPage.jsx`, `Auth.jsx` | AppRouter callbacks, shared ui.jsx controls, semantic CSS variables, responsive layout |
 | Progress / weight / history | `C/components/Progress.jsx`, `WeightCheckIn.jsx`, `hooks/useProgress.js`, `utils/progressData.js`, `Dashboard.jsx`; `B/routes/progressRoutes.js`, `controllers/progressController.js`, `models/WeightCheckIn.js`, `services/progressValidation.js`, `profileContextService.js` | Measured vs reused/skipped, UID/date uniqueness, frequency preservation, browser-only activity boundary, date separation, latest-weight AI context |
+| Backend cold start / startup loader | `C/contexts/AuthContext.jsx`, `utils/backendStartup.js`, `components/StartupScreen.jsx`, `AppRouter.jsx`, `services/backendService.js`; `B/controllers/healthController.js`, `app.js` | Exact missing-profile 404, no retries of writes/AI, 120s total/15s attempt deadlines, auth/unmount cancellation, public tour access, light/dark/reduced motion |
 | Auth provider / redirects | `C/config/firebase.js`, `contexts/AuthContext.jsx`, `AppRouter.jsx`, `B/config/firebase.js`, `middlewares/authMiddleware.js` | Firebase UID, token interceptor, existing/new profile flows |
 | Profile field / preference | `C/components/ProfileOverview.jsx`, `ProfileForm.jsx`, `AppRouter.jsx`, `constants.js`, `B/models/User.js`, `controllers/userController.js` | Form defaults/edit values, API validation, prompt use; cache invalidation if generation changes |
 | New route / navigation | `C/AppRouter.jsx` | Guard policy, full-page links, production SPA rewrite |

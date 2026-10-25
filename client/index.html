@@ -15,10 +15,19 @@
     href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet" />
   <script type="module" src="/src/main.jsx"></script>
+  <style>
+    .initial-loader { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; gap: 14px; background: #111410; color: #f0f3e9; font: 500 16px system-ui, sans-serif; }
+    .initial-loader img { border-radius: 10px; }
+  </style>
 </head>
 
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <div class="initial-loader" role="status">
+      <img src="/favicon.svg" width="40" height="40" alt="" />
+      <div><p>Loading AI Guruji…</p><noscript>Please enable JavaScript to use AI Guruji.</noscript></div>
+    </div>
+  </div>
 </body>
 
 </html>

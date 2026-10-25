@@ -6,6 +6,7 @@ import dietRoutes from './routes/dietRoutes.js';
 import workoutRoutes from './routes/workoutRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import progressRoutes from './routes/progressRoutes.js';
+import { getHealth } from './controllers/healthController.js';
 
 const app = express();
 
@@ -15,6 +16,9 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json({ limit: '10mb' })); // Support large payloads (e.g. images)
+
+// Public readiness probe; no auth, personal data, or model request.
+app.get('/api/health', getHealth);
 
 // Routes
 app.use('/api/auth', authRoutes);

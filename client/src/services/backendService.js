@@ -1,4 +1,5 @@
 import api from './api';
+import { retryStartupRead } from '../utils/backendStartup';
 
 // Diet APIs
 export const generateDietPlan = async (profile) => {
@@ -44,8 +45,8 @@ export const getChatHistory = async () => {
 };
 
 // Profile APIs
-export const getProfile = async () => {
-    const response = await api.get('/users/profile');
+export const getProfile = async (config = {}) => {
+    const response = await api.get('/users/profile', config);
     return response.data;
 };
 
@@ -68,3 +69,14 @@ export const analyzeBodyImage = async (base64Image) => {
 export const getProgress = async () => (await api.get('/progress')).data;
 export const saveWeightCheckIn = async (date, entry) => (await api.put(`/progress/check-ins/${date}`, entry)).data;
 export const saveProgressPreferences = async frequency => (await api.put('/progress/preferences', { frequency })).data;
+
+// Anonymous readiness check: no token, profile data, or paid model call.
+export const warmBackend = options => retryStartupRead(async config => {
+    const { data } = await api.get('/health', { ...config, skipAuth: true });
+    if (data?.service !== 'ai-guruji-api' || data.status !== 'ready') {
+        const error = new Error('Fitness service is still starting');
+        error.retryable = true;
+        throw error;
+    }
+    return data;
+}, options);

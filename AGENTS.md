@@ -14,6 +14,7 @@ This Git repository contains AI Guruji, a React/Vite client and an Express/Mongo
 
 - Client: `client/src/main.jsx` → `App.jsx` → auth/theme providers → `AppRouter.jsx`.
 - API: `backend/src/server.js` → `app.js` → routes → Firebase `verifyToken` → controllers → Mongoose models / AI service.
+- Startup safe-read retries live in `client/src/utils/backendStartup.js` (120s total, 15s attempts). Only the explicit profile-not-found 404 permits onboarding; backend/network errors must never route an existing user to setup. `/api/health` is public readiness (MongoDB + Firebase initialized), used for one bounded anonymous warm-up; do not turn it into a keep-alive or retry writes/AI calls.
 - Firebase handles identity; MongoDB stores application profiles. Firebase ID-token UID is the API ownership key (`User.uid`, plan/history `userId`).
 - All browser API calls go through `client/src/services/api.js` and `backendService.js`. Set `VITE_API_URL` with the `/api` suffix. New protected routes must use `verifyToken`.
 - `Dashboard.jsx` owns daily state and localStorage. Generated plans are saved in MongoDB, but the dashboard does **not** reload server history. Tracking, manual entries, swapped plans, and chat are browser-local. Weight check-ins and their frequency are account-owned MongoDB records through `/api/progress`.
