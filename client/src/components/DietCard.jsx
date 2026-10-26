@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { ArrowRightLeft, Check, ChefHat, Clock, Coffee, Loader2, Moon, Plus, RefreshCw, Sun, Utensils } from 'lucide-react';
 import { Button, Field, Modal, Tag } from './ui';
+import { nutritionPlanStatus } from '../utils/nutritionPlan';
+import { planMealSlots } from '../contracts/nutrition.js';
 const mealIcons = {
   breakfast: Coffee,
   lunch: Sun,
@@ -12,7 +14,7 @@ const RecipeModal = ({
   onClose
 }) => {
   const recipe = meal.recipeDetail || {};
-  return <Modal title={meal.name} eyebrow={`${meal.type || 'Meal'} / THE RECIPE`} onClose={onClose} wide>
+  return <Modal title={meal.name} eyebrow={`${meal.label || meal.type || 'Meal'} / THE RECIPE`} onClose={onClose} wide>
   <div className="recipe-stats">
     <span><strong>{meal.calories ?? '—'}</strong> kcal</span>
     <span><Clock size={16} /> Prep {recipe.prepTime || '—'}</span>
@@ -88,38 +90,43 @@ const DietCard = ({
   swappingMealId,
   onRegenerate,
   canRegenerate = false,
-  readOnly = false
+  readOnly = false,
+  profile,
+  nutritionLoading = false
 }) => {
   const [selectedMeal, setSelectedMeal] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
-  const order = ['breakfast', 'lunch', 'snack', 'dinner'];
-  const slots = order.map(type => ({ type, meal: (plan.meals || []).find(meal => meal.type?.toLowerCase() === type) }));
-  const primarySlots = [...slots];
-  const primaryIds = new Set(slots.map(({ meal }) => meal?.id).filter(Boolean));
-  slots.push(...(plan.meals || []).filter(meal => !primaryIds.has(meal.id)).map(meal => ({ type: meal.type?.toLowerCase() || 'other', meal })));
+  const { slots: primarySlots, extras } = planMealSlots(plan);
+  const slots = [...primarySlots, ...extras];
+  const slotCount = primarySlots.length;
   const totals = (plan.meals || []).reduce((result, meal) => ({ calories: result.calories + Number(meal.calories || 0), protein: result.protein + Number(meal.proteinGrams || 0), carbs: result.carbs + Number(meal.carbsGrams || 0), fats: result.fats + Number(meal.fatsGrams || 0) }), { calories: 0, protein: 0, carbs: 0, fats: 0 });
   const doneCount = primarySlots.filter(({ meal }) => meal && completedMealIds.includes(meal.id)).length;
   const incomplete = primarySlots.some(({ meal }) => !meal);
+  const nutrition = nutritionPlanStatus(plan, profile);
   return <div className="diet-content">
   <section className="nutrition-summary">
-    <div className="nutrition-summary-copy"><p className="eyebrow">YOUR DAILY MENU</p><h2>Fuel for the whole day<span>.</span></h2><p>Four moments to eat well. Recipes and portions, all in one place.</p><div className="nutrition-totals"><div><strong>{totals.calories.toLocaleString()}<small> kcal</small></strong><span>planned energy · estimated</span></div><div className="nutrition-macro-key">{[['Protein', totals.protein, 'protein'], ['Carbs', totals.carbs, 'carbs'], ['Fats', totals.fats, 'fats']].map(([label, value, key]) => <span key={key}><i className={key} /><strong>{Math.round(value)}g</strong>{label}</span>)}</div></div></div>
+    <div className="nutrition-summary-copy"><p className="eyebrow">YOUR DAILY MENU</p><h2>Fuel for the whole day<span>.</span></h2><p>{slotCount} meals shaped around your routine. Recipes and portions, all in one place.</p><div className="nutrition-totals"><div><strong>{totals.calories.toLocaleString()}<small> kcal</small></strong><span>planned energy · estimated</span></div><div className="nutrition-macro-key">{[['Protein', totals.protein, 'protein'], ['Carbs', totals.carbs, 'carbs'], ['Fats', totals.fats, 'fats']].map(([label, value, key]) => <span key={key}><i className={key} /><strong>{Math.round(value)}g</strong>{label}</span>)}</div></div></div>
     <div className="nutrition-summary-art" aria-hidden="true"><img src="/images/food.png" alt="" /><span>FAMILIAR FOOD.<br />FRESH MOMENTUM.</span></div>
   </section>
-  <div className="menu-heading"><div><h3>Your meal lineup</h3><span>{doneCount} of 4 meals logged</span></div><div className="menu-progress" aria-label={`${doneCount} of 4 meals logged`}>{primarySlots.map(({ type, meal }) => <span key={type} className={meal && completedMealIds.includes(meal.id) ? 'done' : ''} />)}</div></div>
-  {incomplete && <div className="incomplete-plan" role="status"><div><strong>This saved plan is missing a meal.</strong><p>{canRegenerate ? 'Create a full day to fill every slot. Meals you’ve logged will stay in your journal.' : 'Empty slots below show what was missing from this saved day.'}</p></div>{canRegenerate && <Button variant="secondary" onClick={onRegenerate}><RefreshCw size={16} /> Create full day</Button>}</div>}
-  <div className="meal-list">{slots.map(({ type, meal }, index) => {
+  {nutrition.targets && <section className="nutrition-target-panel surface" aria-label="Daily nutrition targets">
+    <div><p className="eyebrow">YOUR DAILY TARGETS</p><h3>How this menu adds up</h3><p>Estimated targets {nutrition.targets.source === 'custom' ? 'from your saved macro settings' : 'for the profile used to create this plan'}. Meal totals are food estimates.</p></div>
+    <table><thead><tr><th scope="col">Nutrition</th><th scope="col">Daily target</th><th scope="col">Planned meals</th></tr></thead><tbody>{[['Energy', 'calories', 'kcal'], ['Protein', 'proteinGrams', 'g'], ['Carbs', 'carbsGrams', 'g'], ['Fats', 'fatsGrams', 'g']].map(([label, key, unit]) => <tr key={key}><th scope="row">{label}</th><td>{key === 'proteinGrams' ? 'At least ' : ''}{nutrition.targets[key]} {unit}</td><td>{Math.round(nutrition.totals[key])} {unit}</td></tr>)}</tbody></table>
+  </section>}
+  {(nutrition.needsUpdate || incomplete) && <div className="incomplete-plan" role="status"><div><strong>{nutrition.staleProfile ? 'Your nutrition preferences or targets have changed.' : incomplete ? 'This saved plan is missing a scheduled meal.' : nutrition.proteinShortfall > 0 ? `This menu is ${Math.ceil(nutrition.proteinShortfall)} g below its protein target.` : nutrition.targets ? 'This menu does not match its daily targets.' : 'This saved menu has not been checked against daily targets.'}</strong><p>{canRegenerate && !readOnly ? 'Rebuild the day around checked targets. Food you’ve already logged will stay in your journal.' : 'These are the saved meal estimates for this day.'}</p></div>{canRegenerate && !readOnly && <Button variant="secondary" disabled={nutritionLoading} onClick={onRegenerate}><RefreshCw size={16} /> Rebuild meal plan</Button>}</div>}
+  <div className="menu-heading"><div><h3>Your meal lineup</h3><span>{doneCount} of {slotCount} meals logged</span></div><div className="menu-progress" aria-label={`${doneCount} of ${slotCount} meals logged`}>{primarySlots.map(({ id, meal }) => <span key={id} className={meal && completedMealIds.includes(meal.id) ? 'done' : ''} />)}</div></div>
+  <div className="meal-list">{slots.map(({ id: slotId, type, label, time, meal }, index) => {
         const Icon = mealIcons[type] || Utensils;
-        if (!meal) return <article key={type} className="meal-card meal-missing"><div className="meal-category"><span className={`meal-type-icon type-${type}`}><Icon size={24} /></span><span className="eyebrow">{type}</span><span className="meal-index">0{index + 1}</span></div><h3>No {type} saved</h3><p className="meal-description">This meal wasn’t included in the saved plan.</p><span className="meal-missing-label">Awaiting a complete plan</span></article>;
+        if (!meal) return <article key={slotId} className="meal-card meal-missing"><div className="meal-category"><span className={`meal-type-icon type-${type}`}><Icon size={24} /></span><span className="eyebrow">{label}</span><span className="meal-index">0{index + 1}</span></div><h3>No {label.toLowerCase()} saved</h3><p className="meal-description">This meal wasn’t included in the saved plan.</p><span className="meal-missing-label">Awaiting a complete plan</span></article>;
         const done = completedMealIds.includes(meal.id);
         const swapping = swappingMealId === meal.id;
         const energy = Math.max(1, Number(meal.proteinGrams || 0) * 4 + Number(meal.carbsGrams || 0) * 4 + Number(meal.fatsGrams || 0) * 9);
         return <article key={meal.id} className={`meal-card ${done ? 'is-done' : ''}`}>
-      <div className="meal-category"><span className={`meal-type-icon type-${type}`}><Icon size={24} strokeWidth={1.5} /></span><div><span className="eyebrow">{type}</span><small>{['Start with something good', 'Your midday fuel', 'A little afternoon energy', 'Round out your day'][index] || 'More on your menu'}</small></div><span className="meal-index">0{index + 1}</span></div>
+      <div className="meal-category"><span className={`meal-type-icon type-${type}`}><Icon size={24} strokeWidth={1.5} /></span><div><span className="eyebrow">{label}</span><small>{time || `Meal ${index + 1} in your routine`}</small></div><span className="meal-index">0{index + 1}</span></div>
       <h3>{meal.name}</h3>
       {meal.shortDescription && <p className="meal-description">{meal.shortDescription}</p>}
       <div className="meal-nutrition"><strong>{meal.calories ?? '—'} <small>kcal</small></strong><span><b>{meal.proteinGrams ?? '—'}g</b> protein</span><span><b>{meal.carbsGrams ?? '—'}g</b> carbs</span><span><b>{meal.fatsGrams ?? '—'}g</b> fats</span></div>
       <div className="macro-energy-bar" aria-hidden="true">{[['protein', meal.proteinGrams, 4], ['carbs', meal.carbsGrams, 4], ['fats', meal.fatsGrams, 9]].map(([key, grams, rate]) => <span key={key} className={key} style={{ width: `${Number(grams || 0) * rate / energy * 100}%` }} />)}</div>
-      <div className="meal-actions"><button onClick={() => setSelectedMeal(meal)}><ChefHat size={17} /> Recipe</button><button hidden={readOnly} disabled={done || swapping} onClick={() => onSwapMeal(meal.id)} aria-label={`Swap ${meal.name}`}>{swapping ? <Loader2 size={16} className="spin" /> : <ArrowRightLeft size={16} />}{swapping ? 'Swapping…' : 'Swap'}</button><button disabled={readOnly} className={`meal-log-button ${done ? 'logged' : ''}`} aria-label={`${done ? 'Unmark' : 'Mark'} ${meal.name} as eaten`} aria-pressed={done} onClick={() => onToggleMeal(meal.id, meal.calories)}>{done ? <Check size={16} /> : <Plus size={16} />}{done ? 'Logged' : readOnly ? 'Not logged' : 'Log meal'}</button></div>
+      <div className="meal-actions"><button onClick={() => setSelectedMeal(meal)}><ChefHat size={17} /> Recipe</button><button hidden={readOnly} disabled={done || swapping || nutrition.staleProfile || nutritionLoading} onClick={() => onSwapMeal(meal.id)} aria-label={`Swap ${meal.name}`}>{swapping ? <Loader2 size={16} className="spin" /> : <ArrowRightLeft size={16} />}{swapping ? 'Swapping…' : 'Swap'}</button><button disabled={readOnly} className={`meal-log-button ${done ? 'logged' : ''}`} aria-label={`${done ? 'Unmark' : 'Mark'} ${meal.name} as eaten`} aria-pressed={done} onClick={() => onToggleMeal(meal.id, meal.calories)}>{done ? <Check size={16} /> : <Plus size={16} />}{done ? 'Logged' : readOnly ? 'Not logged' : 'Log meal'}</button></div>
     </article>;
       })}</div>
   <div className="journal-section">
@@ -134,12 +141,12 @@ const DietCard = ({
         <span className="journal-icon"><Utensils size={17} /></span>
         <div>
           <strong>{meal.name}</strong>
-          <small>{meal.timeOfDay} · {meal.calories} kcal</small>
+          <small>{meal.label || meal.timeOfDay} · {meal.calories} kcal</small>
         </div>
         <button disabled={readOnly} className={`completion-toggle ${completedMealIds.includes(meal.id) ? 'is-checked' : ''}`} aria-label={`Toggle ${meal.name} as eaten`} aria-pressed={completedMealIds.includes(meal.id)} onClick={() => onToggleMeal(meal.id, meal.calories)}>{completedMealIds.includes(meal.id) && <Check size={17} />}</button>
       </div>)}</div> : <p className="journal-empty">{readOnly ? 'No extra food was logged for this day.' : 'A snack, a coffee, something extra. There’s room to record it here.'}</p>}
   </div>
-  {plan.tips?.length > 0 && <aside className="coach-note">
+  {!nutrition.needsUpdate && plan.tips?.length > 0 && <aside className="coach-note">
     <ChefHat size={21} />
     <div>
       <p className="eyebrow">A NOTE FOR YOUR DAY</p>

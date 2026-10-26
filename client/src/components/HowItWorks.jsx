@@ -1,18 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Activity, ArrowDown, ArrowRight, ArrowUpRight, Check, Dumbbell, Expand, Fingerprint, Layers, MessageCircle, Moon, Scale, Sun, Utensils } from 'lucide-react';
-import { Brand, IconButton, Modal, Tag } from './ui';
-import { useTheme } from '../contexts/ThemeContext';
+import { Activity, ArrowDown, ArrowRight, ArrowUpRight, Check, Dumbbell, Expand, Fingerprint, Layers, MessageCircle, Scale, Utensils } from 'lucide-react';
+import { Brand, Modal, Tag } from './ui';
 import { useAuth } from '../contexts/AuthContext';
 
 const screens = [
-  { id: 'nutrition', number: '01', label: 'NUTRITION', title: 'Familiar food. A plan that fits.', description: 'Four daily meal slots, Indian staples, portions, macros, and recipes. Swap a meal when life changes, or log something of your own.', image: 'nutrition', alt: 'Nutrition screen showing a four-meal Indian vegetarian menu with calories, macros, recipes, and meal logging', icon: Utensils, tone: 'peach' },
+  { id: 'nutrition', number: '01', label: 'NUTRITION', title: 'Familiar food. A plan that fits.', description: 'A personalized meal schedule, saved daily targets, Indian staples, portions, and recipes. Swap a meal when life changes, or log something of your own.', image: 'nutrition', alt: 'Nutrition screen showing an Indian vegetarian menu with calories, macros, recipes, and meal logging', icon: Utensils, tone: 'peach' },
   { id: 'training', number: '02', label: 'TRAINING', title: 'A clear next move.', description: 'Explore a week of training for home or the gym. Follow sets, reps, and form cues, tick off exercises, and add extra movement.', image: 'training', alt: 'Training screen with a session summary, exercise cards, sets, repetitions, and session completion', icon: Dumbbell, tone: 'lilac' },
   { id: 'progress', number: '03', label: 'PROGRESS', title: 'The bigger picture, at your pace.', description: 'Revisit saved days and follow actual weight measurements over time. Weigh daily, weekly, reuse a reference, or skip sharing a number.', image: 'progress', alt: 'Progress screen showing an illustrative measured-weight chart, activity summaries, and optional check-ins', icon: Scale, tone: 'mint' },
 ];
 
 export default function HowItWorks() {
-  const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
   const [expanded, setExpanded] = useState(null);
   const appPath = user ? '/dashboard' : '/auth';
@@ -32,7 +30,7 @@ export default function HowItWorks() {
     <header className="landing-nav page-width tour-nav">
       <Brand />
       <nav className="landing-links" aria-label="Project navigation"><a href="#product-tour">The product</a><a href="#under-the-hood">Behind the build</a></nav>
-      <div className="public-nav-actions"><IconButton label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} appearance`} onClick={toggleTheme}>{theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}</IconButton><Link className="btn btn-secondary" to={appPath}>{user ? 'My space' : 'Try it out'} <ArrowUpRight size={16} /></Link></div>
+      <div className="public-nav-actions"><Link className="btn btn-secondary" to={appPath}>{user ? 'My space' : 'Try it out'} <ArrowUpRight size={16} /></Link></div>
     </header>
     <main id="how-main">
       <section className="tour-hero page-width">
@@ -46,7 +44,7 @@ export default function HowItWorks() {
         </div>
         <div className="tour-hero-preview">
           <div className="tour-preview-label"><Activity size={16} /><span>ONE SPACE. YOUR EVERYDAY.</span><span className="live-dot" /></div>
-          {preview({ image: 'overview', label: 'OVERVIEW', title: 'Your day, in one place.', alt: 'AI Guruji overview in the warm light theme with today’s meal, movement, and checklist summaries' }, true)}
+          {preview({ image: 'overview', label: 'OVERVIEW', title: 'Your day, in one place.', alt: 'AI Guruji overview in the dark theme with today’s meal, movement, and checklist summaries' }, true)}
           <p>Actual app screens · illustrative profile & sample data</p>
         </div>
       </section>
@@ -74,10 +72,10 @@ export default function HowItWorks() {
       </section>
       <section className="tour-build page-width" id="under-the-hood" aria-labelledby="build-title">
         <div className="tour-section-heading"><div><p className="eyebrow">BEHIND THE BUILD</p><h2 id="build-title">A complete experience.<br />Deliberate engineering.</h2></div><p className="tour-section-note">A full-stack project connecting identity, structured AI generation, daily tracking, and progress.</p></div>
-        <div className="tour-stack"><span>React + Vite</span><ArrowRight size={15} /><span>Express API</span><ArrowRight size={15} /><span>MongoDB</span><span className="tour-stack-service">Firebase Auth</span><span className="tour-stack-service">Groq AI</span></div>
+        <div className="tour-stack"><span>React + Vite</span><ArrowRight size={15} /><span>Express API</span><ArrowRight size={15} /><span>MongoDB</span><span className="tour-stack-service">Firebase Auth</span><span className="tour-stack-service">Google Gemini</span></div>
         <div className="tour-build-grid">
           <article><Fingerprint size={24} /><h3>Identity owns the data</h3><p>Firebase handles sign-in. The API verifies the ID token and uses its UID for profile and weight-journal ownership.</p></article>
-          <article><Layers size={24} /><h3>AI with a defined job</h3><p>Daily diets require four distinct, validated meal slots. A separate scope check keeps coach replies focused on trainer follow-ups.</p></article>
+          <article><Layers size={24} /><h3>AI with a defined job</h3><p>Daily menus follow the saved meal schedule and are checked against reusable nutrition targets. A separate scope check keeps coach replies focused on trainer follow-ups.</p></article>
           <article><Scale size={24} /><h3>Progress with honest signals</h3><p>Charts use actual measurements. Reused and skipped entries stay distinct, and a change in weight is never labelled as fat loss.</p></article>
         </div>
         <details className="tour-boundaries"><summary>How your data is stored <span>+</span></summary><p>Profiles, generated-plan records, and weight check-ins are stored in MongoDB. The daily working plans, completion logs, meal swaps, and coach conversation are currently kept in this browser. Activity history does not yet sync between devices; clearing browser storage can remove that working history.</p></details>

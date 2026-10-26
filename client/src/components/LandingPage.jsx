@@ -1,12 +1,10 @@
 import React from 'react';
-import { ArrowRight, ArrowUpRight, Check, Dumbbell, Flame, Leaf, MessageCircle, MoveUpRight, Utensils, Moon, Sun } from 'lucide-react';
-import { Brand, Button, IconButton, Tag } from './ui';
-import { useTheme } from '../contexts/ThemeContext';
+import { ArrowRight, ArrowUpRight, Check, Dumbbell, Flame, Leaf, MessageCircle, MoveUpRight, Utensils } from 'lucide-react';
+import { Brand, Button, Tag } from './ui';
 const LandingPage = ({
   onGoogleLogin,
   onEmailLoginClick
 }) => {
-  const { theme, toggleTheme } = useTheme();
   return <div className="landing">
   <nav className="landing-nav page-width">
     <Brand />
@@ -14,7 +12,7 @@ const LandingPage = ({
       <a href="/how-it-works">How it works</a>
       <a href="#features">What you get</a>
     </div>
-    <div className="public-nav-actions"><IconButton label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} appearance`} onClick={toggleTheme}>{theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}</IconButton><Button variant="secondary" onClick={onEmailLoginClick}>Log in <ArrowUpRight size={16} /></Button></div>
+    <div className="public-nav-actions"><Button variant="secondary" onClick={onEmailLoginClick}>Log in <ArrowUpRight size={16} /></Button></div>
   </nav>
   <main>
     <section className="landing-hero page-width">

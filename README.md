@@ -67,7 +67,7 @@ Copy [backend/.env.example](backend/.env.example) to `backend/.env` and [client/
 - **Framework**: Express 4.18.2
 - **Database**: MongoDB with Mongoose 8.0.0
 - **Authentication**: Firebase Admin SDK 12.0.0
-- **AI Service**: Groq API (`GROQ_MODEL`, default `openai/gpt-oss-120b`)
+- **AI Service**: Google Gemini Interactions API (`@google/genai`; `GEMINI_MODEL`, default `gemini-3.6-flash`)
 - **CORS**: Enabled for frontend communication
 
 ### Infrastructure
@@ -105,7 +105,7 @@ Ai-guruji/
 │   │   │   ├── userRoutes.js
 │   │   │   └── workoutRoutes.js
 │   │   ├── services/
-│   │   │   └── deepseekService.js   # Groq AI integration
+│   │   │   └── deepseekService.js   # Gemini prompts and validation (historical filename)
 │   │   ├── app.js                   # Express app configuration
 │   │   └── server.js                # Server entry point
 │   ├── package.json
@@ -147,10 +147,10 @@ Ai-guruji/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v18 or higher)
+- Node.js (v20 or higher; required by the Google SDK)
 - MongoDB (local or Atlas)
 - Firebase account
-- Groq API key
+- Google Gemini API key
 
 ### Installation
 
@@ -180,9 +180,9 @@ MONGODB_URI=mongodb://localhost:27017/ai-fitness-coach
 # Or use MongoDB Atlas:
 # MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/ai-fitness-coach
 
-# Groq AI API
-GROQ_API_KEY=your_groq_api_key_here
-GROQ_MODEL=openai/gpt-oss-120b
+# Google Gemini (backend only)
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-3.6-flash
 
 # Firebase Admin SDK
 FIREBASE_PROJECT_ID=your-project-id
@@ -191,7 +191,7 @@ FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project-id.iam.gserviceaccoun
 ```
 
 **Getting API Keys:**
-- **Groq API**: Sign up at [console.groq.com](https://console.groq.com)
+- **Google Gemini API**: Create a key in [Google AI Studio](https://aistudio.google.com/api-keys). Set it in `backend/.env` or server deployment secrets, never in client `VITE_*` variables. Restart the backend after changing the key. `GOOGLE_API_KEY` is also accepted when `GEMINI_API_KEY` is unset.
 - **Firebase**: Create a project at [console.firebase.google.com](https://console.firebase.google.com) and download service account credentials
 
 #### 3. Frontend Setup
@@ -339,7 +339,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🙏 Acknowledgments
 
-- Groq AI for powerful language model API
+- Google Gemini for the language model API
 - Firebase for authentication services
 - MongoDB for database solutions
 - React and Vite teams for excellent development tools

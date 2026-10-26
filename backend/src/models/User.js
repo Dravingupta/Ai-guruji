@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 
+const mealSlotSchema = new mongoose.Schema({ id: String, type: { type: String }, label: String, time: String }, { _id: false });
+
 const userSchema = new mongoose.Schema({
     uid: { type: String, required: true, unique: true, index: true },
     name: { type: String, required: true },
@@ -25,7 +27,14 @@ const userSchema = new mongoose.Schema({
         protein: Number,
         carbs: Number,
         fats: Number
-    }
+    },
+    mealSchedule: { type: [mealSlotSchema], default: undefined },
+    nutritionWeightReviewPercent: { type: Number, default: 5 },
+    nutritionProfileKey: String,
+    nutritionTargets: { source: String, calories: Number, proteinGrams: Number, carbsGrams: Number, fatsGrams: Number },
+    nutritionTargetInputKey: String,
+    nutritionTargetsUpdatedAt: Date,
+    nutritionTargetBasis: { weightKg: Number, measuredOn: String }
 }, { timestamps: true });
 
 export default mongoose.model('User', userSchema);

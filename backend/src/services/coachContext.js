@@ -9,7 +9,7 @@ export const summarizePlanContext = input => {
     const context = input && typeof input === 'object' ? input : {};
     const date = text(context.date, 10);
     const meals = list(context.dietPlan?.meals, 8, meal => meal && text(meal.name) ? {
-        name: text(meal.name), type: text(meal.type, 24),
+        name: text(meal.name), type: text(meal.type, 24), label: text(meal.label, 50), time: text(meal.time, 5),
         calories: number(meal.calories), proteinGrams: number(meal.proteinGrams),
         carbsGrams: number(meal.carbsGrams), fatsGrams: number(meal.fatsGrams),
         ingredients: list(meal.recipeDetail?.ingredients, 12, item => item && text(item.name) ? { name: text(item.name, 80), quantity: text(item.quantity, 60) } : null)

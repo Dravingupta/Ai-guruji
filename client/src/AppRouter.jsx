@@ -1,14 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
-import { useTheme } from './contexts/ThemeContext';
 import { saveProfile } from './services/backendService';
 import LandingPage from './components/LandingPage';
 import Auth from './components/Auth';
 import Dashboard from './components/Dashboard';
-import ProfileForm from './components/ProfileForm';
 import StartupScreen from './components/StartupScreen';
 
+const ProfileForm = React.lazy(() => import('./components/ProfileForm'));
 const HowItWorks = React.lazy(() => import('./components/HowItWorks'));
 
 const LoadingScreen = () => <StartupScreen phase="page" />;
@@ -50,8 +49,7 @@ const PublicOnlyRoute = ({ children }) => {
 };
 
 const DashboardWrapper = () => {
-    const { userProfile, logout } = useAuth();
-    const { theme, toggleTheme } = useTheme();
+    const { userProfile, logout, acceptProfile } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const section = location.pathname === '/profile' ? 'profile' : location.pathname === '/progress' ? 'progress' : location.state?.section || 'overview';
@@ -61,12 +59,11 @@ const DashboardWrapper = () => {
             key={userProfile.uid}
             user={userProfile}
             onLogout={logout}
+            onNutritionProfileUpdated={acceptProfile}
             initialSection={section}
             onViewProfile={() => navigate('/profile')}
             onEditProfile={() => navigate('/profile/edit')}
             onSectionChange={next => navigate(next === 'profile' ? '/profile' : next === 'progress' ? '/progress' : '/dashboard', { state: { section: next } })}
-            theme={theme}
-            onToggleTheme={toggleTheme}
         />
     );
 };
@@ -93,7 +90,7 @@ const ProfileFormWrapper = () => {
     };
 
     return (
-        <ProfileForm
+        <React.Suspense fallback={<LoadingScreen />}><ProfileForm
             uid={user?.uid}
             email={user?.email}
             displayName={user?.displayName}
@@ -103,7 +100,7 @@ const ProfileFormWrapper = () => {
             saving={saving}
             saveError={saveError}
             onCancel={() => navigate('/profile')}
-        />
+        /></React.Suspense>
     );
 };
 

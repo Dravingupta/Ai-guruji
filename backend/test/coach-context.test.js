@@ -30,3 +30,15 @@ test('plan summaries bound useful fields and ignore arbitrary payloads', () => {
     assert.ok(!JSON.stringify(result).includes('Ignore scope'));
     assert.ok(!JSON.stringify(result).includes('hidden'));
 });
+
+import { targetInputKey, defaultMealSchedule } from '../src/contracts/nutrition.js';
+
+test('coach uses saved nutrition targets and distinguishes repeated snack labels without re-estimating', () => {
+    const profile = { age: 30, height: 180, weight: 108, goal: 'Fat Loss', activityLevel: 'Moderate', macroMode: 'auto', nutritionTargets: { calories: 2000, proteinGrams: 130, carbsGrams: 240, fatsGrams: 48 }, nutritionTargetBasis: { weightKg: 108 }, mealSchedule: defaultMealSchedule(5) };
+    profile.nutritionTargetInputKey = targetInputKey(profile);
+    const prompt = buildCoachPrompt(profile);
+    assert.match(prompt, /"proteinGrams":130/); assert.match(prompt, /"nutritionTargetsCurrent":true/);
+    assert.match(prompt, /Morning snack/); assert.match(prompt, /Afternoon snack/);
+    assert.match(prompt, /rather than estimating fresh numbers/);
+    assert.match(buildCoachPrompt({ ...profile, weight: 100 }), /"nutritionTargetsCurrent":false/);
+});

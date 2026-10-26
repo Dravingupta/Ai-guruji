@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { generateDietPlan, generateWeeklyWorkoutPlan, swapMeal } from '../services/backendService';
-import { ArrowRight, ArrowUpRight, Calendar, Check, ChevronLeft, ChevronRight, Dumbbell, Flame, LayoutDashboard, Loader2, LogOut, MessageCircle, Moon, Plus, Settings, Sun, Target, TrendingUp, Scale, Utensils, X } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Calendar, Check, ChevronLeft, ChevronRight, Dumbbell, Flame, LayoutDashboard, Loader2, LogOut, MessageCircle, Plus, Settings, Target, TrendingUp, Scale, Utensils, X } from 'lucide-react';
 import { Brand, Button, CoachMark, IconButton, SectionHeading, Tag, TextLink } from './ui';
 import ChatCoach from './ChatCoach';
 import ProfileOverview from './ProfileOverview';
 import Progress from './Progress';
 import WeightCheckIn from './WeightCheckIn';
 import useProgress from '../hooks/useProgress';
+import useNutritionProfile from '../hooks/useNutritionProfile';
+import { planMealSlots } from '../contracts/nutrition.js';
 import { dayKey, addDays, dateForSection, checkInDue, displayDate, activityStreak } from '../utils/progressData';
 import { retainLoggedMeals } from '../utils/mealPlanReplacement';
 import DietCard, { AddMealModal } from './DietCard';
@@ -44,8 +46,8 @@ const Dashboard = ({
   onSectionChange,
   initialSection = 'overview',
   progressApi,
-  theme,
-  onToggleTheme
+  nutritionApi,
+  onNutritionProfileUpdated
 }) => {
   const [activeModal, setActiveModal] = useState(null);
   const [notice, setNotice] = useState('');
@@ -59,6 +61,8 @@ const Dashboard = ({
   const selectedDate = dateForSection(activeSection, trainingDate, todayStr);
   const progress = useProgress(user.uid, progressApi);
   const latestMeasurement = progress.entries.filter(entry => entry.status === 'measured').sort((a, b) => b.date.localeCompare(a.date))[0];
+  const nutrition = useNutritionProfile(user, latestMeasurement, !progress.loading, onNutritionProfileUpdated, nutritionApi);
+  const nutritionUser = nutrition.profile;
   const todayCheckIn = progress.entries.find(entry => entry.date === todayStr);
   const checkInIsDue = checkInDue(progress.entries, progress.frequency, todayStr);
   useEffect(() => { setActiveSection(initialSection); }, [initialSection]);
@@ -127,7 +131,7 @@ const Dashboard = ({
     setNotice('');
     setLoadingDiet(true);
     try {
-      const plan = await generateDietPlan(user);
+      const plan = await generateDietPlan();
       const planWithDate = {
         ...plan,
         date: selectedDate
@@ -148,9 +152,10 @@ const Dashboard = ({
         [selectedDate]: planWithDate
       }));
       initTrackingIfMissing(selectedDate, plan.totalCalories);
+      void nutrition.refresh();
     } catch (error) {
       console.error(error);
-      setNotice('Your meal plan couldn’t be created. Check your connection and try again.');
+      setNotice(error.response?.data?.error || 'Your meal plan couldn’t be created. Check your connection and try again.');
     } finally {
       setLoadingDiet(false);
     }
@@ -294,7 +299,7 @@ const Dashboard = ({
     setNotice('');
     setSwappingMealId(mealId);
     try {
-      const newMeal = await swapMeal(mealToSwap);
+      const newMeal = await swapMeal(mealToSwap, currentDietPlan);
       const updatedMeals = currentDietPlan.meals.map(m => m.id === mealId ? newMeal : m);
       const updatedPlan = {
         ...currentDietPlan,
@@ -309,7 +314,7 @@ const Dashboard = ({
       }));
     } catch (error) {
       console.error(error);
-      setNotice('We couldn’t find a meal swap just now. Please try again.');
+      setNotice(error.response?.data?.error || 'We couldn’t find a meal swap just now. Please try again.');
     } finally {
       setSwappingMealId(null);
     }
@@ -456,10 +461,10 @@ const Dashboard = ({
   <p>{isToday ? `Your ${isDiet ? 'daily meals' : 'weekly workouts'}, ready when you are.` : isPast ? 'No plan was saved for this date.' : 'You can create a plan when this day arrives.'}</p>
   {isToday && <Button variant="secondary" onClick={handler}>Create {isDiet ? 'meal plan' : 'workout plan'} <ArrowUpRight size={16} /></Button>}
 </div>;
-    if (preview) return isDiet ? <div className="plan-preview">{[...plan.meals].sort((a, b) => ['breakfast', 'lunch', 'snack', 'dinner'].indexOf(a.type) - ['breakfast', 'lunch', 'snack', 'dinner'].indexOf(b.type)).map(meal => <button className="preview-row" key={meal.id} onClick={() => changeSection('meals')}>
+    if (preview) return isDiet ? <div className="plan-preview">{[...planMealSlots(plan).slots, ...planMealSlots(plan).extras].filter(slot => slot.meal).map(slot => ({ ...slot.meal, label: slot.label, time: slot.time })).map(meal => <button className="preview-row" key={meal.id} onClick={() => changeSection('meals')}>
     <span className={`preview-status ${currentTracking.completedMealIds.includes(meal.id) ? 'done' : ''}`}>{currentTracking.completedMealIds.includes(meal.id) ? <Check size={15} /> : <Utensils size={15} />}</span>
     <span>
-      <small>{meal.type}</small>
+      <small>{meal.label || meal.type}{meal.time ? ` · ${meal.time}` : ''}</small>
       <strong>{meal.name}</strong>
     </span>
     <span className="preview-calories">
@@ -483,7 +488,7 @@ const Dashboard = ({
           width: `${plan.exercises.length ? plannedExercisesDone / plan.exercises.length * 100 : 0}%`
         }} /></div>
 </div>;
-    return isDiet ? <DietCard plan={plan} manualMeals={currentManualMeals} completedMealIds={currentTracking.completedMealIds} onToggleMeal={toggleMeal} onAddManualMeal={addManualMeal} onSwapMeal={handleSwapMeal} swappingMealId={swappingMealId} onRegenerate={() => handleGenerateDiet(true)} canRegenerate={isToday} /> : <WorkoutCard plan={plan} manualWorkouts={currentManualWorkouts} completedExerciseIds={currentTracking.completedExerciseIds} onToggleExercise={toggleExercise} onAddManualWorkout={addManualWorkout} userWeight={latestMeasurement?.weightKg || user.weight} readOnly={!isToday} />;
+    return isDiet ? <DietCard plan={plan} manualMeals={currentManualMeals} completedMealIds={currentTracking.completedMealIds} onToggleMeal={toggleMeal} onAddManualMeal={addManualMeal} onSwapMeal={handleSwapMeal} swappingMealId={swappingMealId} onRegenerate={() => handleGenerateDiet(true)} canRegenerate={isToday} profile={nutritionUser} nutritionLoading={nutrition.loading} /> : <WorkoutCard plan={plan} manualWorkouts={currentManualWorkouts} completedExerciseIds={currentTracking.completedExerciseIds} onToggleExercise={toggleExercise} onAddManualWorkout={addManualWorkout} userWeight={latestMeasurement?.weightKg || user.weight} readOnly={!isToday} />;
   };
   return <div className="app-shell">
   <aside className="app-sidebar">
@@ -507,10 +512,6 @@ const Dashboard = ({
     <div className="sidebar-bottom">
       <a className="sidebar-setting" href="/how-it-works"><ArrowUpRight size={18} /> How it works</a>
       <button className={`sidebar-setting ${activeSection === 'profile' ? 'active' : ''}`} aria-current={activeSection === 'profile' ? 'page' : undefined} onClick={viewProfile}><Settings size={18} /> My profile <ArrowUpRight size={15} /></button>
-      <button className="sidebar-setting" onClick={onToggleTheme}>
-        {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-        {theme === 'dark' ? 'Light appearance' : 'Dark appearance'}
-      </button>
       <div className="sidebar-account">
         <button className="account-profile" onClick={viewProfile}>
           <span className="avatar">{firstName.charAt(0)}</span>
@@ -529,12 +530,13 @@ const Dashboard = ({
       <div className="breadcrumb">My space <span>/</span> <strong>{title}</strong></div>
       <div className="topbar-right">
         <span className="streak-pill"><Flame size={16} /><b>{badgeStats.streak}</b> day streak</span>
-        <IconButton label="Toggle appearance" className="mobile-theme" onClick={onToggleTheme}>{theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}</IconButton>
         <button className="avatar" onClick={viewProfile} aria-label="View your profile">{firstName.charAt(0)}</button>
         <IconButton label="Log out" className="mobile-logout" onClick={onLogout}><LogOut size={17} /></IconButton>
       </div>
     </header>
     <main className={`dashboard-body section-${activeSection}`}>
+      {['meals', 'profile'].includes(activeSection) && nutrition.loading && <p className="nutrition-status" role="status">Checking your saved nutrition targets…</p>}
+      {['meals', 'profile'].includes(activeSection) && nutrition.error && <div className="error-banner" role="alert">{nutrition.error} <button className="text-link" onClick={() => nutrition.refresh()}>Try again</button></div>}
       <div className="dashboard-heading">
         <div>
           <p className="eyebrow">{activeSection === 'progress' ? 'YOUR JOURNEY, AT YOUR PACE' : activeSection === 'profile' ? 'YOUR PERSONAL SPACE' : activeSection === 'overview' ? 'SMALL STEPS. REAL MOMENTUM.' : activeSection === 'meals' ? 'FUEL YOUR EVERYDAY' : activeSection === 'workout' ? 'MAKE TIME FOR MOVEMENT' : 'YOUR QUESTIONS. A LITTLE CLARITY.'}</p>
@@ -671,7 +673,7 @@ const Dashboard = ({
         {planState('workout')}
       </>}
       {activeSection === 'progress' && <Progress uid={user.uid} progress={progress} onCheckIn={setCheckInDate} tab={progressTab} onTabChange={setProgressTab} historyDate={historyDate} onHistoryDateChange={setHistoryDate} />}
-      {activeSection === 'profile' && <ProfileOverview user={user} weightMeasurement={latestMeasurement} stats={badgeStats} onEdit={onEditProfile} />}
+      {activeSection === 'profile' && <ProfileOverview user={nutritionUser} nutrition={nutrition} weightMeasurement={latestMeasurement} stats={badgeStats} onEdit={onEditProfile} />}
       {activeSection === 'coach' && <ChatCoach user={user} planContext={{ date: selectedDate, dietPlan: currentDietPlan, workoutPlan: currentWorkoutPlan }} messages={chatHistory} onUpdateMessages={updateChatHistory} />}
       <footer className="dashboard-footer">
         <span>A LITTLE BETTER, EVERY DAY.</span>

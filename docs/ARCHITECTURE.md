@@ -18,6 +18,14 @@ Scoped progress update, 25 October 2026: Overview/Nutrition/Coach use today; Tra
 
 Scoped public-tour/light-theme update, 25 October 2026: `/how-it-works` is a lazy-loaded public product walkthrough accessible without signing in and also from the dashboard. It presents the problem, user journey, four real app screenshots with synthetic data, trainer-follow-up scope, stack/engineering decisions, and honest storage boundaries. Landing and walkthrough both offer theme toggles. Light appearance now uses a consistent sand/linen canvas, terracotta actions, and olive completion/session panels; dark tokens are preserved. Overview has an arched athlete image on desktop and a compact movement graphic on phones. The former alternating pastel fills were removed, and the light product screenshots were refreshed. Overview has no date badge; Nutrition and Training keep their date context. No API, authentication, or storage contracts changed.
 
+Scoped dark-only update, 26 October 2026 (supersedes earlier appearance behavior): dark is the only appearance, applied directly by `:root` CSS with `color-scheme: dark` before React mounts. Theme context, hooks, switcher props/controls, and the alternate light palette were removed. The legacy `theme` localStorage value is no longer read or written; saved light preferences cannot change the appearance. Product walkthrough screenshots now all show the dark interface. Routes, authentication, and account/day data keys are unchanged.
+
+Scoped nutrition-target update, 26 October 2026: the previous implementation accepted four-meal plans without comparing totals with the intake recommendations in AI-written tips. Daily targets are now resolved before generating meals, saved as `nutritionTargets`, and checked on the server. Protein cannot fall below the target; calories must stay within 10%, carbs/fats within 15%, and protein at most 15% above. Each meal's macro energy must agree with its calories within 15%. Auto mode estimates targets from the saved profile/latest actual weight; custom mode uses saved grams and derives energy from them. GPT-OSS nutrition requests use strict JSON schemas, with JSON-object mode retained for other configured models. Each target/menu/swap stage allows one correction of invalid output (including provider JSON-format rejection); transport failures are never replayed. UI compares targets with planned totals, flags old unchecked menus, and supports explicit rebuilding with logged food retained. Estimates remain model-based, without a verified food-composition database.
+
+Scoped reusable-target/schedule update, 26 October 2026 (supersedes per-plan target estimation and fixed four-meal behavior): User now owns saved daily nutrition targets, their input signature, reference weight/date, saved timestamp, a weight-review percentage (default 5%), and a personalized 2–6 slot meal schedule. First nutrition use resolves missing targets; unchanged targets are reused across days. Relevant body/goal/activity input changes or an absolute weight change meeting the configured percentage refresh auto targets; food/schedule/name changes do not cause target estimation. Custom macros are authoritative and never require target-estimation calls. Meal generation and swaps preserve the selected slot IDs, labels, times and targets. Profile signatures flag outdated cached menus for an explicit rebuild that retains logged food. Shared contracts are in `backend/src/contracts/nutrition.js` and its browser mirror `client/src/contracts/nutrition.js`; repeated snack slots are independent. Concurrent target/menu requests share promises within an API worker. No cross-device history hydration, local-calendar migration, or automatic replacement of historical/logged food was added.
+
+Scoped Gemini migration, 26 October 2026 (supersedes all earlier Groq/GPT-OSS transport descriptions): generation now uses the official `@google/genai` SDK and Gemini Interactions API, default `gemini-3.6-flash`. Server key/model settings are `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) and `GEMINI_MODEL`. Native steps carry stateless history (`store: false`); JSON response schemas preserve nutrition validation. SDK transport retries are disabled, including for 429; one correction remains available only for completed but invalid nutrition output. Saved targets/schedules/cache contracts remain unchanged. Verification: 51 backend tests, 19 client tests and the production client build pass. Tests exercise the installed SDK with mocked HTTP. A subsequent live check with the configured Google key confirmed model access (`models/gemini-3.8-flash`); a minimal Interactions request returned HTTP 503 high demand, and a synthetic five-meal request also returned 503. Those agent-run requests did not complete. The user subsequently reported successful operation with `gemini-3.6-flash`; the default, setup template and documentation now use that exact configured model. No additional paid live check was made for this default-only change; the five provider tests pass. No account/database data was changed. Earlier successful live checks below describe the former provider only.
+
 ## Navigation
 
 - [1. Project at a glance](#1-project-at-a-glance)
@@ -37,7 +45,7 @@ Scoped public-tour/light-theme update, 25 October 2026: `/how-it-works` is a laz
 
 AI Guruji is an Indian fitness-coach web app. Users authenticate, create a fitness profile, receive daily diet and seven-day workout plans, log meals/exercise, and chat with an AI coach.
 
-There are two independent npm packages, both JavaScript ES modules. There is no monorepo manager, root package, TypeScript, global state library, background worker, or separate AI microservice.
+There are two independent npm packages, both JavaScript ES modules. The backend requires Node.js 20+ for the Google SDK (declared in package engines). There is no monorepo manager, root package, TypeScript, global state library, background worker, or separate AI microservice.
 
 | Layer | Implementation and responsibility |
 | --- | --- |
@@ -48,7 +56,7 @@ There are two independent npm packages, both JavaScript ES modules. There is no 
 | API | Express `^4.18.2`, cors, dotenv; Node ES modules |
 | Server identity | Firebase Admin `^12.0.0`: verifies Firebase ID tokens |
 | Persistent server data | MongoDB via Mongoose `^8.0.0` |
-| Generation | Groq chat-completions HTTP API; `GROQ_MODEL`, default `openai/gpt-oss-120b` |
+| Generation | Google Gemini Interactions via `@google/genai ^2.31.0`; `GEMINI_MODEL`, default `gemini-3.6-flash` |
 | Daily working data | React state + UID/date-scoped localStorage |
 | Deployment configuration | Vercel SPA rewrite for client; Render service YAML for API |
 
@@ -61,7 +69,7 @@ flowchart LR
     UI -->|Axios + Firebase bearer ID token| API[Express API]
     API -->|verifyIdToken| ADM[Firebase Admin]
     API <--> DB[(MongoDB: profiles, generated plans, weight check-ins)]
-    API --> AI[Groq chat completions]
+    API --> AI[Google Gemini Interactions]
 ```
 
 **The central persistence rule:** MongoDB is the backend source for the profile, optional weight journal/cadence, and generated-plan records. The dashboard's working history comes from localStorage; it never hydrates from the server history APIs. Clearing browser storage or using another browser can trigger new generation despite existing MongoDB records. Firebase stores identity, not the app's fitness profile.
@@ -76,26 +84,24 @@ This map covers all application source and tracked configuration files in the au
 | --- | --- |
 | `client/package.json` | Dependencies and `dev`, `build`, `preview`, `test` scripts |
 | `client/.env.example` | Copyable browser configuration template; VITE_API_URL and Firebase web app fields |
-| `client/index.html` | `#root` with a static branded loading fallback before React; dark initial class, page metadata, favicon link, Google Fonts URLs, module entry |
+| `client/index.html` | `#root` with a static branded loading fallback before React; fixed dark color scheme, page metadata, favicon link, Google Fonts URLs, module entry |
 | `client/public/favicon.svg` | Scalable lime activity-mark favicon matching the shared Brand logo |
 | `client/src/main.jsx` | React root; wraps `App` in `React.StrictMode` |
-| `client/src/App.jsx` | `ThemeProvider` → `AuthProvider` → `AppRouter` |
+| `client/src/App.jsx` | `AuthProvider` → `AppRouter`; the expanded profile form is lazy-loaded |
 | `client/src/AppRouter.jsx` | Route guards; loading screen; dashboard/profile prop adapters; `handleSave` |
 | `client/src/contexts/AuthContext.jsx` | Firebase listener; `user`, `userProfile`, `loading`, `error`; `logout`, `refreshProfile`, `retrySession`, named `useAuth`; always renders children and owns cancellable session/profile startup |
-| `client/src/contexts/ThemeContext.jsx` | `theme`, `toggleTheme`, named `useTheme`; localStorage and document `.dark` class |
 | `client/src/hooks/useAuth.js` | Default re-export of context hook; no separate state |
-| `client/src/hooks/useTheme.js` | Default re-export of context hook; no separate state |
 | `client/src/config/firebase.js` | Browser Firebase app and exported `auth`; reads Vite env |
 | `client/src/services/api.js` | Shared Axios instance and async ID-token request interceptor |
 | `client/src/services/backendService.js` | API helpers returning `response.data`; `chatWithCoach` returns `.text`; body-image stub |
 | `client/src/constants.js` | Exact user-facing strings for dietary preference, goal, activity, body type |
-| `client/src/index.css` | Shared CSS variables, complete athletic dark/light design system, screen layouts, responsive breakpoints, reduced-motion styles |
-| `client/tailwind.config.js` | Source scanning, class-based dark mode, DM Sans as `font-sans` and Barlow Condensed as `font-display` |
+| `client/src/index.css` | Shared CSS variables, athletic dark-only design system, screen layouts, responsive breakpoints, reduced-motion styles |
+| `client/tailwind.config.js` | Source scanning, DM Sans as `font-sans` and Barlow Condensed as `font-display` |
 | `client/postcss.config.js` | Tailwind and Autoprefixer plugins |
-| `client/vite.config.js` | React plugin and development `/api` proxy to port 5000 |
+| `client/vite.config.js` | React plugin, development `/api` proxy to port 5000 |
 | `client/vercel.json` | Rewrite all routes to `/index.html` for browser routing |
-| `client/metadata.json` | AI Studio metadata; Gemini description is historical, not active integration |
-| `client/README.md` | Historical AI Studio/Gemini setup; use section 8 here for actual runtime configuration |
+| `client/metadata.json` | AI Studio metadata; body-image analysis remains a stub |
+| `client/README.md` | Client setup; provider credentials are configured only in backend |
 | `client/.gitignore` | Client dependency/build/editor ignores |
 
 ### Client screens and components
@@ -105,7 +111,7 @@ This map covers all application source and tracked configuration files in the au
 | `client/src/components/StartupScreen.jsx` | Branded session/backend/page loading and retry/sign-out error states; honest elapsed time, indeterminate animation, public tour escape link |
 | `client/src/utils/backendStartup.js` | Bounded safe-read retries, cancellation/deadlines, owned profile validation, strict missing-profile recognition |
 | `client/test/backend-startup.test.js` | Cold-start failures, HTML responses, exact 404 vs infrastructure errors, UID ownership, hung requests and cancellation |
-| `client/src/components/LandingPage.jsx` | Marketing page; auth callbacks, theme toggle, links to the public walkthrough |
+| `client/src/components/LandingPage.jsx` | Marketing page; auth callbacks, links to the public walkthrough |
 | `client/src/components/HowItWorks.jsx` | Public product story, user journey, screenshot gallery/native enlargement dialog, stack and storage disclosure; reads auth only to select its CTA destination |
 | `client/public/images/product/*.webp` | Four optimized real UI screenshots (Overview, Nutrition, Training, Progress), using isolated synthetic data; refresh when the UI changes |
 | `client/src/components/Auth.jsx` | Firebase Google login, email sign-in/sign-up, error display; route change is driven by auth state |
@@ -114,6 +120,7 @@ This map covers all application source and tracked configuration files in the au
 | `client/src/components/Dashboard.jsx` | Feature coordinator: sidebar/mobile navigation, overview metrics and real weekly bars, date navigation, generation, local caches, tracking, swaps, log dialogs |
 | `client/src/components/Progress.jsx` | Trends/ranges/weight chart, actual activity summaries, preferences/journal, and read-only Day history |
 | `client/src/components/WeightCheckIn.jsx` | Optional dated measured/reused/skipped entry dialog; notes, validation, save errors |
+| `client/src/hooks/useNutritionProfile.js` | Owned target ensure/review requests, request coalescing, stale-response protection, loading/retry state and auth-profile updates |
 | `client/src/hooks/useProgress.js` | Authenticated progress API state, retry/save/preferences; no browser weight cache or silent offline success |
 | `client/src/utils/progressData.js` | UTC date helpers, safe browser-day reads, measured-only weight summaries, activity summaries/streak, check-in due logic, today/preview date separation |
 | `client/src/components/DietCard.jsx` | Meal list and completion callbacks; internal `RecipeModal`; exported `AddMealModal` |
@@ -124,6 +131,7 @@ This map covers all application source and tracked configuration files in the au
 | `client/test/*.test.js` | Node regression checks for safe chat rendering and preserving logged meals |
 | `docs/DESIGN.md` | Redesign direction, screen ownership, exact asset prompts, and verification |
 | `client/src/components/ChatMessage.jsx` | Safe React renderer for basic emphasis, code, paragraphs, headings, and lists; never evaluates raw HTML |
+| `client/src/utils/nutritionPlan.js` | Target-versus-menu totals, protein shortfall and unchecked legacy menu status |
 | `client/src/utils/mealPlanReplacement.js` | Pure `retainLoggedMeals` helper used when replacing incomplete plans; keeps consumed meal IDs/calories valid |
 | `client/src/components/ChatCoach.jsx` | Controlled message history; textarea with Enter/Shift+Enter; suggestions; input/loading/scroll state; `handleSend` |
 
@@ -137,7 +145,7 @@ Dashboard logic is organized by symbols: `get*Key`, `initTrackingIfMissing`, `ha
 | `backend/test/chat-scope.test.js` | Scope/whole-plan redirects, profile exclusion, relevant/legacy follow-ups, optional plan context transport, invalid decisions |
 | `backend/test/coach-context.test.js` | Plan field projection/bounds and distinction between missing plans and actual recovery sessions |
 | `backend/test/coach-and-plans.test.js` | Node regressions for greetings, complete meal validation, and mocked provider integration |
-| `backend/.env.example` | Copyable server configuration template; MongoDB, Groq, Firebase Admin, server/origin settings |
+| `backend/.env.example` | Copyable server configuration template; MongoDB, Gemini, Firebase Admin, server/origin settings |
 | `backend/src/server.js` | dotenv loading, DB/Firebase initialization, HTTP listener |
 | `backend/src/app.js` | Express instance, CORS, JSON limit, six route mounts, health response, final error handler |
 | `backend/src/config/database.js` | `connectDB`; Mongoose connection; exits process on connection failure |
@@ -165,7 +173,12 @@ Dashboard logic is organized by symbols: `get*Key`, `initTrackingIfMissing`, `ha
 | `backend/src/models/DietPlan.js` | Diet and nested meal/recipe schema |
 | `backend/src/models/WorkoutPlan.js` | Daily workout and nested exercise schema |
 | `backend/src/models/ChatHistory.js` | History schema; read path exists but send does not write it |
-| `backend/src/services/deepseekService.js` | Groq HTTP, plan prompts, parsing, fallback data, generated IDs; uses the chat policy builder |
+| `backend/src/contracts/nutrition.js` and its browser mirror `client/src/contracts/nutrition.js` | Shared schedule defaults/validation, stable slot matching, target/profile signatures and significant-weight policy |
+| `backend/src/services/nutritionProfileService.js` | Reuse or refresh owned profile targets, measured-weight basis, concurrent request coalescing and stale-write guards |
+| `backend/src/services/nutritionTargets.js` | Normalize positive targets, derive custom energy/per-slot budget guidance, validate daily macros and meal energy |
+| `backend/src/services/nutritionSchemas.js` | Strict provider schemas for targets, day menu and replacement meal; supported-model format selection |
+| `backend/src/services/deepseekService.js` | Gemini request translation, plan prompts, parsing, fallback data, generated IDs; uses the chat policy builder |
+| `backend/src/services/geminiClient.js` | Lazy Google SDK client, server-only key resolution and model selection |
 | `backend/src/services/dietPlanValidation.js` | `normalizeMeal`, `normalizeDietPlan`, four-slot order, numeric nutrition and recipe validation, derived total calories |
 | `backend/src/services/chatScope.js` | Trainer-follow-up scope classifier; in_scope / plan_request / off_topic; bounded user-only context, strict parsing, fixed redirects |
 | `backend/src/services/coachContext.js` | `summarizePlanContext`: projects selected-day browser meal ingredients/portions, macros, exercise prescriptions/form, warmup/cooldown; excludes arbitrary metadata |
@@ -182,7 +195,7 @@ No tracked test files, CI workflows, migration files, Docker files, or LICENSE f
 
 ### Authentication and routing
 
-`main.jsx` mounts `App` with `ThemeProvider` outside `AuthProvider`, so startup respects the saved appearance. The HTML root includes a small branded fallback until React mounts. `AuthProvider` always renders its children: router guards show `StartupScreen` during session restoration/profile loading or a retryable connection error, rather than hiding the entire UI. `/how-it-works` is public even during loading/errors.
+`main.jsx` mounts `App` with `AuthProvider` around `AppRouter`. Dark CSS applies unconditionally, independent of browser preferences or saved settings. The HTML root includes a small branded fallback until React mounts. `AuthProvider` always renders its children: router guards show `StartupScreen` during session restoration/profile loading or a retryable connection error, rather than hiding the entire UI. `/how-it-works` is public even during loading/errors.
 
 `onAuthStateChanged` publishes the Firebase user immediately, clears stale profile/error state, and loads `/users/profile`. Only a 404 JSON response with `{ error: 'Profile not found' }` permits onboarding. Network/5xx failures and invalid/HTML/wrong-UID responses retry within **120 seconds**, with **15-second per-attempt limits** and **2.5-second gaps**. Other HTTP errors do not auto-retry. Pending reads are aborted on auth changes, retries, and unmount; revision checks prevent stale account responses from updating state. Initial Firebase restoration has a separate 20-second error timeout. Retry restarts the profile load (or reloads the page if no Firebase identity exists); sign-out clears the state through the auth listener without deleting localStorage.
 
@@ -211,11 +224,11 @@ No browser code calls `/auth/verify`. Firebase SDK login plus `/users/profile` c
 
 1. Basic info: name, age, gender, height cm, weight kg. `handleNext` checks name, age 10–100, height 50–300, weight 20–300.
 2. Goal/activity/workout location.
-3. Diet preference, auto/custom macros, allergies and free-text allergy notes, region, budget, optional body image/type.
+3. Diet preference, auto/custom targets, significant-weight threshold (3/5/10% in UI), personalized 2–6 meal slots with editable labels/types/optional local times, allergies/notes, region, budget and optional body type.
 
-Defaults: Vegetarian, Fat Loss, Sedentary, Not Sure, North India, Male, medium budget, Home, auto macros. `initialData` overrides them in edit mode. An empty allergy selection means none. Custom macro mode requires positive numbers for all three targets; it does not calculate calories. Numeric values use cm, kg, years, and grams.
+Defaults: Vegetarian, Fat Loss, Sedentary, Not Sure, North India, Male, medium budget, Home, auto macros. `initialData` overrides them in edit mode. An empty allergy selection means none. Custom macro mode requires positive numbers for all three targets; the server derives calories and persists the corresponding targets. Auto targets resolve on first nutrition use and are reused. Old profiles default to the existing four-slot schedule; this is a compatibility default, not an AI prescription. Numeric values use cm, kg, years, and grams.
 
-`ProfileFormWrapper.handleSave` calls `saveProfile` → `refreshProfile` → navigate to dashboard. It passes `saving` to disable submission, `saveError` for an inline error, Firebase email/displayName for defaults, and `onCancel` for edit mode. `refreshProfile` catches its own failure, so navigation may proceed after an unsuccessful refresh.
+`ProfileFormWrapper.handleSave` calls `saveProfile` → `refreshProfile` → navigate to dashboard. It passes `saving` to disable submission, `saveError` for an inline error, Firebase email/displayName for defaults, and `onCancel` for edit mode. `refreshProfile` propagates read failures, so failed saves/refreshes stay in the form with an error. The form is lazy-loaded with the existing page-loading presentation.
 
 The form uses Firebase email when saving and Firebase displayName as a new-profile name default. Email is not editable in this UI. The backend still accepts body email without assigning token email or enabling update validators; API validation remains a separate gap.
 
@@ -225,9 +238,9 @@ Exact constants: dietary preference `Vegetarian`, `Vegan`, `Non-Veg`, `Jain`; go
 
 ### Dashboard lifecycle
 
-The dashboard derives its working date: Overview/Nutrition/Coach/Profile/Progress use UTC today; Training uses today or a selected upcoming date. History has an independent `historyDate`. On mount or working-date / UID / section change, the loading effect reads cached manual logs, diet, workout, tracking, and user-wide chat. It creates a local greeting if no chat exists. For **today only**, absent diet/workout keys automatically trigger generation while viewing Overview, Nutrition, or Training. Progress/Profile/Coach do not initiate plan generation. Visiting Profile or Coach does not initiate plan generation. Existing keys short-circuit generation. An incomplete current-day diet has a Create full day action that explicitly bypasses its old cache. Past/future dates without plans show locked empty states. Already cached future workouts are displayed, and existing-plan completion, swaps, and manual logging are not restricted to today.
+The dashboard derives its working date: Overview/Nutrition/Coach/Profile/Progress use UTC today; Training uses today or a selected upcoming date. History has an independent `historyDate`. On mount or working-date / UID / section change, the loading effect reads cached manual logs, diet, workout, tracking, and user-wide chat. It creates a local greeting if no chat exists. For **today only**, absent diet/workout keys automatically trigger generation while viewing Overview, Nutrition, or Training. Progress/Profile/Coach do not initiate plan generation. Visiting Profile or Coach does not initiate plan generation. Existing keys short-circuit meal generation; the independent profile-target ensure request still checks whether saved targets can be reused without an AI call. An incomplete current-day diet has a Create full day action; a legacy unchecked or target-mismatched menu has Rebuild meal plan. Both explicitly bypass the old cache and retain logged food in the journal. Failed generation leaves the previous cache intact. Past/future dates without plans show locked empty states. Already cached future workouts are displayed, and existing-plan completion, swaps, and manual logging are not restricted to today.
 
-Diet generation sends the profile body, but the backend ignores it and fetches the stored profile by token UID. The response is cached with `date: selectedDate`; tracking initializes with the plan's totalCalories only if no tracking key exists. For explicit replacement, `retainLoggedMeals` moves completed old meals into the manual journal under their original IDs, deduplicates them, and updates the target/deficit while preserving consumed calories, exercise completion, burn, and net. No global storage migration or cache deletion occurs. Missing saved meals display empty labeled slots; additional legacy meals remain visible.
+Diet generation sends an authenticated request without a profile body. The backend fetches the owned saved profile, resolves reusable targets and uses the saved schedule. `useNutritionProfile` also ensures targets when the dashboard loads and after the latest actual measurement changes; its result updates the owned auth profile through `acceptProfile`. There is no background job: a weight recorded outside the app is considered on the next nutrition request. The response is cached with `date: selectedDate`; tracking initializes with the plan's totalCalories only if no tracking key exists. For explicit replacement, `retainLoggedMeals` moves completed old meals into the manual journal under their original IDs, deduplicates them, and updates the target/deficit while preserving consumed calories, exercise completion, burn, and net. No global storage migration or cache deletion occurs. Missing saved meals display empty labeled slots; additional legacy meals remain visible.
 
 Workout generation sends `startDate: selectedDate`. The response array is assigned consecutive dates **by array index** starting at selectedDate, then cached one day per key. Only the selected day's plan is immediately put in React state. The UI does not derive dates from `dayName` or the server document's date.
 
@@ -245,7 +258,7 @@ Chat history transport is `{ role, text }`. The backend also accepts `content` a
 
 ### Theme
 
-`ThemeProvider` defaults to dark and honors a saved localStorage `theme` preference. Toggle saves light/dark and adds/removes `.dark` on `document.documentElement`. `index.html` starts dark to avoid a white initial flash; saved light removes the class on provider mount. All screens use semantic CSS variables in `index.css` for shared dark/light colors. Tailwind still supplies utilities, including sr-only. Fonts are DM Sans and Barlow Condensed. See [design notes](DESIGN.md) for palette, components, assets, and UI verification.
+The app uses dark appearance exclusively. `index.css` defines the graphite/lime palette directly on `:root` with `color-scheme: dark`; no theme provider, hook, document class, or appearance switcher is required. Legacy localStorage `theme` preferences are ignored. Tailwind supplies utilities, including sr-only. Fonts are DM Sans and Barlow Condensed. See [design notes](DESIGN.md) for palette, components, assets, and UI verification.
 
 ## 4. Backend lifecycle and API contract
 
@@ -253,7 +266,7 @@ Chat history transport is `{ role, text }`. The backend also accepts `content` a
 
 `server.js` imports `dotenv/config`, calls `connectDB()` without awaiting it, calls `initializeFirebase()`, then listens on `PORT || 5000`. The listener can start before MongoDB is ready. DB connection failure exits with code 1. Firebase initialization errors are logged and swallowed, allowing the server to keep running while protected requests fail.
 
-`app.js` configures CORS with `origin: FRONTEND_URL || '*'` and `credentials: true`, accepts JSON bodies up to `10mb`, mounts route groups, and exposes `GET /` returning `AI Fitness Coach API is running`. This root response is process liveness only. `GET /api/health` separately returns no-store JSON `{ service: "ai-guruji-api", status: "ready" | "starting" }`: 200 when MongoDB is connected and Firebase Admin has an initialized app, otherwise 503. It is anonymous and performs no database query or model call; it does not verify Groq access or every downstream operation. The JSON limit is not evidence of a functioning image feature.
+`app.js` configures CORS with `origin: FRONTEND_URL || '*'` and `credentials: true`, accepts JSON bodies up to `10mb`, mounts route groups, and exposes `GET /` returning `AI Fitness Coach API is running`. This root response is process liveness only. `GET /api/health` separately returns no-store JSON `{ service: "ai-guruji-api", status: "ready" | "starting" }`: 200 when MongoDB is connected and Firebase Admin has an initialized app, otherwise 503. It is anonymous and performs no database query or model call; it does not verify Gemini access or every downstream operation. The JSON limit is not evidence of a functioning image feature.
 
 All `/api` routes listed below require `Authorization: Bearer <Firebase ID token>`. `verifyToken` calls Firebase Admin `verifyIdToken`, sets `{ uid, email }`, and emits 401 `{ error: 'No token provided' }` or `{ error: 'Invalid or expired token' }`. There is no app-issued JWT, cookie session, role/permission layer, or refresh endpoint.
 
@@ -266,11 +279,12 @@ Success responses currently use status 200, including creation. Raw Mongoose doc
 | `GET /api/health` | None; public, no bearer token needed | 200 ready / 503 starting; JSON service marker and status only, Cache-Control: no-store; no writes or AI calls |
 | `POST /api/auth/verify` | No body needed | `{ uid, email, hasProfile }`; looks up User; creates/updates nothing |
 | `GET /api/users/profile` | None | User document; 404 `{ error: 'Profile not found' }` if absent |
-| `POST /api/users/profile` | Profile fields | User document; forces body `uid` to token UID and upserts by UID |
+| `POST /api/users/profile` | Editable profile fields, optional mealSchedule and nutritionWeightReviewPercent | User document; token UID owns the record; saved-target metadata and weigh-in cadence cannot be overwritten by the form. Schedule/custom-target validation errors return 400 |
+| `POST /api/users/nutrition-targets` | `{ review?: boolean }` | Owned profile with reusable targets; `review: true` explicitly refreshes auto targets, otherwise refresh only when missing/outdated/significant weight change. 409 on a concurrent profile change; no automatic transport retry |
 | `DELETE /api/users/profile` | None | `{ message: 'Profile deleted' }`; deletes User only |
-| `POST /api/diet/generate` | Body ignored | DietPlan document from stored profile + AI; explicit 404 `User profile not found` if absent |
+| `POST /api/diet/generate` | No body needed | DietPlan snapshot from owned profile targets/schedule + AI; concurrent identical requests coalesce in one worker; 409 if preferences/targets changed during generation |
 | `GET /api/diet/history` | None | All user's DietPlan documents, newest `createdAt` first |
-| `POST /api/diet/swap-meal` | `{ meal: Meal }` | New Meal object from stored profile + AI; no DB update |
+| `POST /api/diet/swap-meal` | `{ meal: Meal, plan?: DietPlan }` | New Meal object from stored profile/latest weight + AI; reject outdated new-format plan signatures with 409; whole-day slot/target checks when supplied, otherwise preserve meal protein and similar calories; no DB update. Browser plan is advisory, not verified server history |
 | `POST /api/workout/generate` | `{ startDate }` optional | Array of saved WorkoutPlan documents; one create per AI day in `Promise.all` |
 | `GET /api/workout/history` | None | All user's WorkoutPlan documents, newest `createdAt` first |
 | `GET /api/progress` | None | `{ entries, frequency }`; owned weight entries newest date first |
@@ -301,6 +315,11 @@ Schemas use `{ timestamps: true }`, adding `createdAt`/`updatedAt`. Model names 
 | `allergies` | String array |
 | `macroMode` | String, default `auto` |
 | `customMacros` | Nested Numbers `protein`, `carbs`, `fats` (grams in UI) |
+| `mealSchedule` | 2–6 `{ id, type, label, time }` entries; stable distinct IDs, repeated snack types permitted, optional HH:MM local time; missing field defaults to the old four slots in shared code |
+| `nutritionTargets` | Persisted `{ source, calories, proteinGrams, carbsGrams, fatsGrams }`; custom values derive from saved macros, auto values are reused |
+| `nutritionTargetInputKey`, `nutritionTargetsUpdatedAt`, `nutritionTargetBasis` | Server-owned target-input signature, saved timestamp, and `{ weightKg, measuredOn }` basis |
+| `nutritionProfileKey` | Server-owned schedule/food/target-input signature used to protect in-flight writes and flag cached menu changes |
+| `nutritionWeightReviewPercent` | Default 5; API accepts 1–20; UI choices 3/5/10. Compare absolute change against the last target basis, not the immediately preceding weigh-in |
 
 Upsert uses `findOneAndUpdate({ uid }, profileData, { new: true, upsert: true })` without `runValidators`. Do not assume schema-required fields or client ranges are enforced on this endpoint. Other body fields are not explicitly allowlisted, and email is not replaced with token email.
 
@@ -314,11 +333,11 @@ Progress loads from the account API without caching weights in localStorage. `wi
 
 ### DietPlan and Meal
 
-DietPlan: required indexed String `userId`, required String `date`, Number `totalCalories`, `meals: Meal[]`, `tips: String[]`. Also has a **nonunique** compound index `{ userId: 1, date: 1 }`, so repeated generation can create multiple plans for the same day.
+DietPlan: required indexed String `userId`, required String `date`, Number `totalCalories`, optional `nutritionTargets: { source: auto|custom, calories, proteinGrams, carbsGrams, fatsGrams }`, schedule snapshot `mealSchedule`, signature `nutritionProfileKey`, `meals: Meal[]`, `tips: String[]`. Targets persist with the original day and survive browser caching/swaps; old documents may omit them. Also has a **nonunique** compound index `{ userId: 1, date: 1 }`, so repeated generation can create multiple plans for the same day.
 
 ```text
 Meal {
-  id: String, name: String, type: String,
+  id: String, slotId: String, label: String, time: String, name: String, type: String,
   calories: Number, proteinGrams: Number, carbsGrams: Number, fatsGrams: Number,
   shortDescription: String, source: String,
   recipeDetail: {
@@ -328,7 +347,7 @@ Meal {
 }
 ```
 
-`type` is generally breakfast/lunch/dinner/snack but has no schema enum. Recipe UI tolerates missing recipeDetail/arrays and renders available values; full domain validation is still absent. Server generation sets UTC today then spreads the generated object after it; returned fields can override preceding values. There is no full AI-output allowlist/shape validation.
+`type` is generally breakfast/lunch/dinner/snack but has no schema enum. Recipe UI tolerates missing recipeDetail/arrays and renders available values; full domain validation is still absent. Diet normalization allowlists day-level meals/calorie totals/tips and attaches server-resolved targets, so generated top-level ownership/date values are not returned. Meal shape/arithmetic checks do not verify food-composition accuracy or allergens.
 
 ### WorkoutPlan and Exercise
 
@@ -354,7 +373,7 @@ Application meal/exercise `id` is generated with Math.random string slicing. Com
 
 ### localStorage contracts
 
-All values below are JSON except `theme`. Keys have no schema version, migration, expiry, or retention policy. Reads use JSON.parse without recovery, and writes do not handle storage quota errors. UID scoping separates app keys between accounts but does not encrypt data on a shared browser.
+All active values below are JSON. The obsolete `theme` key is ignored and may remain in existing browsers; no appearance preference is read or written. Keys have no schema version, migration, expiry, or retention policy. Reads use JSON.parse without recovery, and writes do not handle storage quota errors. UID scoping separates app keys between accounts but does not encrypt data on a shared browser.
 
 In the patterns below, `uid` means `Dashboard`'s `user.uid`, and `date` is the selected `YYYY-MM-DD` day key.
 
@@ -366,7 +385,6 @@ In the patterns below, `uid` means `Dashboard`'s `user.uid`, and `date` is the s
 | `aiCoachManualMeals_${uid}_${date}` | ManualMeal array |
 | `aiCoachManualWorkouts_${uid}_${date}` | ManualWorkout array |
 | `aiCoachChat_${uid}` | `{ role: 'user' | 'model', text, timestamp }[]`; not date-scoped |
-| `theme` | Literal `light` or `dark`; shared across users |
 
 ```text
 DailyTracking {
@@ -408,39 +426,43 @@ Date keys use `new Date().toISOString().split('T')[0]` (UTC). Display uses `toLo
 
 ## 7. AI integration
 
-AI requests, plan prompts, parsing, and fallbacks live in `backend/src/services/deepseekService.js`; the chat system prompt is built in `backend/src/services/coachPrompt.js`. Despite names `deepseekService` and private `callDeepSeek`, the service calls `https://api.groq.com/openai/v1/chat/completions` with bearer `GROQ_API_KEY`, `GROQ_MODEL` (default `openai/gpt-oss-120b`), and `{ model, messages }`. Requests have a 60-second timeout. Diet/workout/swap and the chat scope check use `response_format: { type: 'json_object' }`; the coach answer remains plain text. Scope checks have `max_completion_tokens: 1024`; in-scope chat answers have `1536` (provider reasoning counts toward the budget). Empty or length-truncated provider responses are treated as errors. Plan token budgets are unchanged. See the [Groq API reference](https://console.groq.com/docs/api-reference). JSON mode guarantees syntax rather than a domain schema. There is no DeepSeek/Gemini SDK, strict structured response schema, streaming, tool call, or retry configured.
+AI prompts, parsing and fallbacks live in the historically named `backend/src/services/deepseekService.js`; `geminiClient.js` lazily creates the official `GoogleGenAI` client. `GEMINI_API_KEY` takes precedence over `GOOGLE_API_KEY`; `GEMINI_MODEL` defaults to `gemini-3.6-flash`. All operations call `ai.interactions.create`. Internal chat messages become native `user_input` / `model_output` steps containing text, with a separate `system_instruction`. `store: false` keeps history managed by the browser rather than provider interaction IDs. There is no streaming or tool call.
+
+Requests set a 60-second timeout, low thinking, and `retries: { strategy: 'none' }`. Output limits are 2,048 tokens for targets, 8,192 for menus/swaps/workouts, 1,024 for scope, and 1,536 for coach answers. JSON tasks use `response_format: [{ type: 'text', mime_type: 'application/json', schema }]`; nutrition and scope have explicit required fields, while workout uses a generic object schema with its shape requested by the prompt. Coach answers are plain text. Only nonempty output with `status: 'completed'` is accepted, using `output_text` or model-output text steps; thought content is excluded. See the [Google Interactions guide](https://ai.google.dev/gemini-api/docs/interactions-overview).
+
+Completed nutrition output still passes the existing arithmetic/domain checks, with at most one correction after invalid JSON or nutrition. Provider/HTTP failures never trigger this correction or SDK retries. Quota errors become `AI_RATE_LIMIT` / HTTP 429; missing credentials and 401/403/404 become `AI_CONFIGURATION` / HTTP 503; other provider failures become `AI_UNAVAILABLE` / HTTP 503. Public health/auth startup does not require an AI key.
 
 ### Exported operations
 
 | Export | Actual prompt context | Output transformation |
 | --- | --- | --- |
-| `generateDietPlan(profile)` | name, region, goal, age, height, weight, activity, diet preference, budget, allergies/notes, macro mode/targets, general notes | Validate exactly breakfast/lunch/snack/dinner with numeric nutrition and recipes; order meals, derive calorie total, assign IDs |
-| `swapMeal(profile, currentMeal)` | current name/type/calories, dietaryPreference, region, allergies | Validate one meal and preserve its type; assign ID |
+| `generateDietPlan(profile)` | Saved profile including gender, goal, activity, diet, budget, allergies/notes and latest measured weight; persisted or custom daily targets and personal schedule | Validate every scheduled meal exactly once against fixed targets and energy consistency; derive calories, persist targets, discard independent AI-written intake tips, assign IDs |
+| `swapMeal(profile, currentMeal, currentPlan?)` | Profile constraints, current meal, optional complete browser menu and frozen targets | Validate the resulting whole day against its targets; legacy swaps preserve protein and similar calories; assign ID |
 | `generateWeeklyWorkoutPlan(profile, startDateStr)` | start date, goal, workoutPreference, age, activity level; asks for actual weekdays, meaningful focus, recovery days | Parse `weekPlan`; retain focus or fall back to dayName; assign exercise IDs. Week shape/date sequence still lacks domain validation |
-| `chatWithCoach(profile, history, message)` | Query-first policy; saved name, age, heightCm, weightKg, gender, goal, diet, region, activity, workout location, budget, allergies/notes, macro mode and custom macros when selected; history and current text | Pure greetings bypass Groq; scope classifier uses recent user context; off-topic and whole-plan requests return distinct fixed text; relevant answers use profile/history and summarized optional browser plan context |
+| `chatWithCoach(profile, history, message)` | Query-first policy; saved name, age, heightCm, weightKg, gender, goal, diet, region, activity, workout location, budget, allergies/notes, macro mode and custom macros when selected; history and current text | Pure greetings bypass Gemini; scope classifier uses recent user context; off-topic and whole-plan requests return distinct fixed text; relevant answers use profile/history and summarized optional browser plan context |
 
 Chat profile context is serialized as JSON data, excluding UID/email. Missing values remain unknown rather than causing null-profile failures. Context is advisory and used only when relevant; answers must not invent profile details or claim to perform app actions. Plan-generation prompts remain separate and are not changed by edits to the conversational policy.
 
-The diet prompt includes the selected food preference and allergies as explicit constraints. This is model guidance, not a deterministic ingredient/allergen verification engine. Custom macro values are passed through; there is no separate calorie/macro calculation engine. Gender/body type/body analysis are not used by the daily diet prompt.
+The diet prompt includes the selected food preference and allergies as explicit constraints. This is model guidance, not a deterministic ingredient/allergen verification engine. Custom macros are authoritative positive gram targets, with energy calculated as 4×protein + 4×carbs + 9×fat. Auto mode reuses persisted positive, energy-consistent targets unless missing, target inputs changed, an explicit review was requested, or measured/profile weight moved by the configured percentage from its saved basis; targets are model estimates rather than clinical prescriptions. Gender is included in the profile context. Body type/body analysis are not used. The protein prompt references the NIH Office of Dietary Supplements exercise fact sheet; no athlete formula is applied unconditionally.
 
-`parseJSONResponse` strips thinking blocks, tries fenced JSON, then the first/last braces, then full JSON parsing. Diet/swap subsequently pass domain validation in `dietPlanValidation.js`; malformed/incomplete results fail with a retryable error. Workout still only maps the parsed structure. Chat normalizes model/assistant roles and accepts text/content/legacy parts; empty history entries are removed and the latest 12 messages are retained for answers. Non-greeting off-topic/whole-plan turns use one provider call; relevant turns use a scope call plus an answer call. This adds one provider request and its latency to relevant chat. The separate classifier receives the latest message plus at most four user messages (500 characters each), with no profile or old assistant instructions. Unknown scope decisions fail closed to the connection error; classification remains model-based, not a guarantee of semantic correctness.
+`parseJSONResponse` strips thinking blocks, tries fenced JSON, then the first/last braces, then full JSON parsing. Diet/swap subsequently pass domain validation in `dietPlanValidation.js`; malformed/incomplete or target-mismatched results receive at most one correction and then fail with an error. No invalid result is returned to the saving controller. Workout still only maps the parsed structure. Chat normalizes model/assistant roles and accepts text/content/legacy parts; empty history entries are removed and the latest 12 messages are retained for answers. Non-greeting off-topic/whole-plan turns use one provider call; relevant turns use a scope call plus an answer call. This adds one provider request and its latency to relevant chat. The separate classifier receives the latest message plus at most four user messages (500 characters each), with no profile or old assistant instructions. Unknown scope decisions fail closed to the connection error; classification remains model-based, not a guarantee of semantic correctness.
 
 ### Fallback behavior
 
-Diet and swap catch errors and throw generic retry messages. The existing controller returns 500 and the dashboard displays an error, leaving the previous plan intact. Static diet and swap fallback generators were removed so generic food is not cached as a personalized plan. Validation establishes structure and arithmetic, not nutritional accuracy or ingredient suitability.
+Diet and swap preserve normalized provider errors (429 or 503); other validation failures receive generic retry messages with HTTP 500. The dashboard displays the server error and leaves the previous plan intact. Static diet and swap fallback generators were removed so generic food is not cached as a personalized plan. Validation establishes structure and arithmetic, not nutritional accuracy or ingredient suitability.
 
 Workout and chat still return success-shaped fallbacks without a machine-readable status:
 
 - Workout: same beginner full-body routine for Monday through Sunday; fallback ignores startDate for labels. Browser assigns sequential local dates. Exercises receive generated IDs.
 - Chat: fixed connection-trouble message. Pure greetings return locally without needing provider access. HTTP can still return 200 for a connection-trouble reply.
 
-Provider request logs include URL/model; provider error logs include status/code/model. They no longer include any API-key characters or raw provider error bodies. Generation still logs full diet data and parse failures log raw model text; consider profile/health-data exposure when changing observability.
+Provider request logs identify Gemini/model; provider error logs include status/code/model. They no longer include any API-key characters or raw provider error bodies. Generation still logs full diet data and parse failures log raw model text; consider profile/health-data exposure when changing observability.
 
 ## 8. Configuration, local setup, and deployment
 
 ### Environment variables
 
-Actual env files/secret values were not used for this documentation. Client `VITE_*` values are embedded into browser output at build time; backend service credentials and Groq keys belong only on the server.
+Actual env files/secret values were not used for this documentation. Client `VITE_*` values are embedded into browser output at build time; backend service credentials and Gemini keys belong only on the server.
 
 | Package | Variable | Use / default |
 | --- | --- | --- |
@@ -455,8 +477,8 @@ Actual env files/secret values were not used for this documentation. Client `VIT
 | Backend | `NODE_ENV` | Logged mode; Render YAML sets production |
 | Backend | `FRONTEND_URL` | CORS origin, default `*`; configure deployed frontend origin |
 | Backend | `MONGODB_URI` | Mongoose connection URI; no default |
-| Backend | `GROQ_API_KEY` | Provider bearer key; missing key errors diet/swap, falls back for workout/chat |
-| Backend | `GROQ_MODEL` | Accessible Groq chat model; default `openai/gpt-oss-120b`; template sets it explicitly |
+| Backend | `GEMINI_API_KEY` | Server-only Google key; missing key errors nutrition, falls back for workout/chat. `GOOGLE_API_KEY` is accepted if this is unset |
+| Backend | `GEMINI_MODEL` | Gemini Interactions model; default `gemini-3.6-flash`; template sets it explicitly |
 | Backend | `FIREBASE_SERVICE_ACCOUNT` | JSON service-account string; takes precedence over separate fields |
 | Backend | `FIREBASE_PROJECT_ID` | Used when service-account JSON is absent |
 | Backend | `FIREBASE_CLIENT_EMAIL` | Used when service-account JSON is absent |
@@ -504,23 +526,23 @@ These are source-observed behavior or direct consequences of the code, not claim
 | --- | --- |
 | History / cross-device state | Dashboard never invokes history helpers; browser cache loss generates fresh plans. Server history alone cannot restore tracking/manual logs/chat. Choose an explicit sync strategy before adding hydration. |
 | Chat persistence | History transport now preserves prior context, but `sendMessage` never writes ChatHistory. MongoDB history remains separate from browser-owned messages. |
-| Provider model access | Old hardcoded `llama-3.3-70b-versatile` returned model_not_found with the local key. Default is now `openai/gpt-oss-120b`; use GROQ_MODEL for future changes and verify account access. Cached fallback plans remain cached after changing the model/key. |
+| Provider model access | Use `GEMINI_MODEL` to select an accessible Interactions model; default `gemini-3.6-flash`. Google quota/model access still applies. Cached plans remain cached after changing model/key; no automatic provider-change rebuild occurs. |
 | Workout dates | Server usually saves seven days with UTC today's date; client overwrites dates by array position. Backfill/date migration matters if server history becomes visible. |
-| Repeated generation | No unique user/date plan constraint or idempotency. React StrictMode effect replay/concurrent requests can duplicate generation and writes before local cache exists. |
-| Nutrition personalization | Preference/allergy/macro context is now passed, but no deterministic ingredient/allergen checker or calorie/macro calculation engine exists. Structural validation cannot establish dietary suitability. |
+| Repeated generation | Target/menu calls coalesce within one API worker, including StrictMode replays. No distributed lock or unique user/date constraint exists; separate workers or sequential explicit rebuilds can still create additional snapshots. |
+| Nutrition personalization | Fixed targets and meal-total/energy checks now prevent unchecked macro shortfalls. Auto targets and ingredient nutrition are still model estimates; no deterministic ingredient/allergen checker or verified food-composition database establishes dietary suitability. |
 | Workout/chat fallback visibility | These operations still return success-shaped fallback results. Diet/swap now return errors. Old cached generic diet plans are not automatically invalidated. |
-| Validation / profile email | UI now supplies Firebase email. The endpoint still does not enforce token email or runValidators. Schema-required fields and frontend ranges are insufficient endpoint validation. |
+| Validation / profile email | The profile endpoint allowlists editable fields and validates schedules/custom targets/weight thresholds. It still does not assign token email or comprehensively validate all existing demographic fields. |
 | AI data validation | Parsing is not shape/domain validation; cards expect recipe/exercise arrays. Generated object spreads follow controller ownership/date fields. |
 | Historical workout totals | New manual additions save correct immediate totals; older cached tracking records may retain stale burn until another recomputation. |
-| Swapped plan totals | Local-only swap neither updates MongoDB nor recalculates totalCalories/target. Existing target persists if tracking was initialized earlier. |
-| Profile changes | Save does not invalidate/regenerate cached plans, even when goals, allergies, or weight change. Old plans/targets remain. |
+| Swapped plan totals | Swap preserves slot identity and target bounds, recalculates browser totals/tracking, and updates only the local working plan. MongoDB retains the generated snapshot. |
+| Profile changes | Target input changes refresh auto targets on the next nutrition ensure/generation. Significant weight changes refresh from a measured/profile-weight basis; smaller fluctuations reuse targets. Food/schedule/target signatures flag current cached menus for explicit rebuilding; history/logs remain immutable. |
 | Day boundaries | UTC keys differ from Indian calendar date early morning; no midnight timer advances selectedDate automatically. |
 | Cache handling | Unversioned JSON.parse/storage writes have no recovery/quota handling; no cleanup on logout or profile delete. |
 | Startup / readiness | Listener does not await DB and Firebase init errors are swallowed. The new `/api/health` stays 503 until MongoDB is connected and Firebase Admin is initialized; root `/` is liveness only. Health does not test provider access or arbitrary DB operations. |
 | Deletes | Profile-only delete leaves Firebase identity, server plans/history, and browser data; no UI/helper currently invokes it. |
 | UI claims | Gemini Vision/body-image analysis is a stub; coach text cannot execute swaps; no chart library, progress weight history, or enforceable six-day gym split exists. |
-| Visual assets / fonts | Hero images are local generated assets. Fonts are Google-hosted with sans-serif fallbacks; loading external fonts requires network access. Dark is the new default; saved light preference remains honored. |
-| Legacy docs | Root README lists nonexistent `/current` routes and says verify creates/updates users; client README/metadata mention Gemini. Use the source-backed contracts here. |
+| Visual assets / fonts | Hero images are local generated assets. Fonts are Google-hosted with sans-serif fallbacks; loading external fonts requires network access. Dark is the only appearance; legacy saved preferences are ignored. |
+| Legacy docs | Root README lists nonexistent `/current` routes and says verify creates/updates users; older feature claims may be broader than delivered behavior. Use the source-backed contracts here. |
 | Operational controls | Provider calls have a 60-second timeout. Scoped Node regression tests now exist; no lint/CI, server-wide request timeout, automatic retry, rate limiting, history pagination/retention, transactional weekly save, or structured fallback marker. |
 
 ## 10. Change map
@@ -532,22 +554,22 @@ Use this table to find the smallest relevant source set. Paths under `client/src
 | Public product tour / screenshots | `C/components/HowItWorks.jsx`, `C/public/images/product/`, `C/AppRouter.jsx`; `docs/DESIGN.md` | Public access in both auth states, accurate claims, synthetic-data screenshots, lazy loading, native enlargement dialogs, landing/dashboard links |
 | Landing/auth visuals | `C/components/LandingPage.jsx`, `Auth.jsx` | AppRouter callbacks, shared ui.jsx controls, semantic CSS variables, responsive layout |
 | Progress / weight / history | `C/components/Progress.jsx`, `WeightCheckIn.jsx`, `hooks/useProgress.js`, `utils/progressData.js`, `Dashboard.jsx`; `B/routes/progressRoutes.js`, `controllers/progressController.js`, `models/WeightCheckIn.js`, `services/progressValidation.js`, `profileContextService.js` | Measured vs reused/skipped, UID/date uniqueness, frequency preservation, browser-only activity boundary, date separation, latest-weight AI context |
-| Backend cold start / startup loader | `C/contexts/AuthContext.jsx`, `utils/backendStartup.js`, `components/StartupScreen.jsx`, `AppRouter.jsx`, `services/backendService.js`; `B/controllers/healthController.js`, `app.js` | Exact missing-profile 404, no retries of writes/AI, 120s total/15s attempt deadlines, auth/unmount cancellation, public tour access, light/dark/reduced motion |
+| Backend cold start / startup loader | `C/contexts/AuthContext.jsx`, `utils/backendStartup.js`, `components/StartupScreen.jsx`, `AppRouter.jsx`, `services/backendService.js`; `B/controllers/healthController.js`, `app.js` | Exact missing-profile 404, no retries of writes/AI, 120s total/15s attempt deadlines, auth/unmount cancellation, public tour access, dark appearance/reduced motion |
 | Auth provider / redirects | `C/config/firebase.js`, `contexts/AuthContext.jsx`, `AppRouter.jsx`, `B/config/firebase.js`, `middlewares/authMiddleware.js` | Firebase UID, token interceptor, existing/new profile flows |
 | Profile field / preference | `C/components/ProfileOverview.jsx`, `ProfileForm.jsx`, `AppRouter.jsx`, `constants.js`, `B/models/User.js`, `controllers/userController.js` | Form defaults/edit values, API validation, prompt use; cache invalidation if generation changes |
 | New route / navigation | `C/AppRouter.jsx` | Guard policy, full-page links, production SPA rewrite |
 | Dashboard layout / tabs | `C/components/Dashboard.jsx`, relevant card | Existing props, overview/sidebar/mobile navigation, shared UI controls, date-scoped state |
 | Calories / tracking / streak | `C/components/Dashboard.jsx`, `WorkoutCard.jsx`, `DietCard.jsx` | Section 6 storage/formulas, immediate manual-add totals, weekly vs daily totals |
-| Meal / recipe / swap | `C/components/DietCard.jsx`, `Dashboard.jsx`, `services/backendService.js`; `B/controllers/dietController.js`, `models/DietPlan.js`, AI service | Item IDs, recipe shape, swapped totals, persistence decision, fallback shape |
+| Meal / recipe / swap | `C/components/DietCard.jsx`, `Dashboard.jsx`, `services/backendService.js`; `B/controllers/dietController.js`, `models/DietPlan.js`, AI service | Item IDs, recipe shape, frozen nutritionTargets, macro/energy checks, whole-day swap totals, explicit legacy rebuild retaining logged food |
 | Workout generation / schedule | `C/components/Dashboard.jsx`, `WorkoutCard.jsx`; `B/controllers/workoutController.js`, `models/WorkoutPlan.js`, AI service | startDate, array order, seven DB dates, burn fields, partial saves |
 | Coach memory / format | `C/components/ChatCoach.jsx`, `Dashboard.jsx`, `services/backendService.js`; `B/controllers/chatController.js`, `models/ChatHistory.js`, AI service | Canonical role/text payload, legacy parts compatibility, user/model vs assistant roles, local/server history ownership |
 | Chat tone / answer relevance | `B/services/coachPrompt.js`, `deepseekService.js`; `C/components/Dashboard.jsx`, `ChatCoach.jsx` | Brief greetings, direct answers, profile-aware follow-ups, nonjudgmental guidance, safe formatting via ChatMessage, neutral fallback; test deterministic greetings against old strict history |
-| AI provider / model / prompts | `B/services/deepseekService.js`, affected controller/model/card | Output shape, fallback compatibility, profile fields actually consumed, credentials stay server-side |
+| AI provider / model / prompts | `B/services/geminiClient.js`, `deepseekService.js`, affected controller/model/card | Output shape, fallback compatibility, profile fields actually consumed, credentials stay server-side |
 | Real body-image analysis | `C/components/ProfileForm.jsx`, `services/backendService.js` | Add actual protected route/controller/service; current stub makes no request; image handling/retention needs design |
 | Server API endpoint | `B/app.js`, relevant route/controller/model; `C/services/backendService.js` | verifyToken, UID ownership, request/response shape, caller UI |
 | Cross-device sync | `C/components/Dashboard.jsx`, history helpers; all related backend models/controllers | Correct server workout dates first; define merges, completion IDs, migrations, manual/tracking/chat writes |
 | User/account deletion | `B/controllers/userController.js`, dependent models; `C/contexts/AuthContext.jsx`, storage key helpers | Decide Firebase deletion/cascades/browser cleanup and implement explicit semantics |
-| Theme / CSS | `C/contexts/ThemeContext.jsx`, `C/index.css`, `client/tailwind.config.js`, components | Dark default, saved light preference, semantic CSS variables, responsive and reduced-motion styles |
+| Theme / CSS | `C/index.css`, `client/index.html`, components | Unconditional dark palette and color scheme, no appearance controls, semantic CSS variables, responsive and reduced-motion styles |
 | Deploy / URL / CORS | `client/vite.config.js`, `vercel.json`, `C/services/api.js`; `B/app.js`, `server.js`, `backend/render.yaml` | Build-time VITE vars, `/api` suffix, host root, FRONTEND_URL, readiness |
 
 Common end-to-end extension pattern: form/visual input → backendService helper → protected route → controller using token UID → model and/or AI operation → response consumer → browser persistence/calculations. Only touch the layers the feature actually needs, but follow the contract through its consumers.
@@ -556,9 +578,9 @@ Common end-to-end extension pattern: form/visual input → backendService helper
 
 ### Available checks
 
-Run `npm test` in both packages. Backend tests cover deterministic greetings, off-topic and whole-plan redirects, valid follow-ups/legacy history, selected-day plan context/projection, malformed scope decisions, daily meal validation/order/calorie totals, and mocked provider failures. Client tests cover safe chat formatting and preserving logged meals during replacement (Vite/esbuild transforms JSX for React DOM server). These tests need installed dependencies and do not contact Groq, Firebase, or MongoDB. No lint script or CI exists. Also run `npm run build` from client. Backend syntax can be checked per changed file with `node --check src/path/to/file.js` from backend; this does not test imports, auth, DB, or AI behavior.
+Run `npm test` in both packages. Backend tests cover deterministic greetings, off-topic and whole-plan redirects, valid follow-ups/legacy history, selected-day plan context/projection, malformed scope decisions, daily meal validation/order/calorie totals, and mocked provider failures. Client tests cover safe chat formatting and preserving logged meals during replacement (Vite/esbuild transforms JSX for React DOM server). These tests need installed dependencies and do not contact Google, Firebase, or MongoDB. No lint script or CI exists. Also run `npm run build` from client. Backend syntax can be checked per changed file with `node --check src/path/to/file.js` from backend; this does not test imports, auth, DB, or AI behavior.
 
-For integration changes with configured services, run both packages and check the affected flow. Generation consumes provider requests and writes MongoDB data; use a development account/database. Never validate fallback-only output as evidence that live Groq works.
+For integration changes with configured services, run both packages and check the affected flow. Generation consumes provider requests and writes MongoDB data; use a development account/database. Never validate fallback-only output as evidence that live Gemini works.
 
 | Change area | Useful manual verification |
 | --- | --- |
@@ -579,7 +601,7 @@ For integration changes with configured services, run both packages and check th
 | API request returns frontend HTML/404 | VITE_API_URL is missing or lacks `/api`; Vite proxy only catches `/api`; deployed rewrite is SPA-only |
 | Logged-in user sent to profile setup | GET profile status, AuthContext catch behavior, MongoDB profile existence, Firebase/Admin project match |
 | Every protected request returns 401 | Browser currentUser/token, Authorization header, server Firebase initialization logs and matching project |
-| Same generic plans / generic coach reply | GROQ_API_KEY presence, GROQ_MODEL access, provider status/code logs, parser/fallback path, existing browser cache; a 200 does not rule these out |
+| Same generic plans / generic coach reply | GEMINI_API_KEY/GOOGLE_API_KEY presence, GEMINI_MODEL access, provider status/code logs, parser/fallback path, existing browser cache; a 200 does not rule these out |
 | Old plan after profile edit | Existing aiCoachDiet/Workout keys short-circuit generation; no invalidation |
 | Empty history on another device | Dashboard never loads server plan history; tracking/manual/chat are browser-only |
 | Coach forgets previous message | Inspect role/text network payload and provider messages; legacy parts[] is accepted. Browser clearing/device changes lose local history; server history is not written. |
@@ -603,3 +625,23 @@ Update the audit date/baseline only when the corresponding scope was actually re
 ### Progress verification notes (25 October 2026)
 
 Final verification: 19 backend tests, 8 client tests, and the production build pass; desktop/phone review includes both appearances, entry/reuse/skip, save retry, cadence changes, date browsing, and return to today. New progress checks cover real/future dates, invalid weights, UID ownership, replacing a number with skip, server-resolved reuse, cadence/profile-edit separation, latest-measured context, sparse weekly trends, today vs Training date, prompt timing, owned device logs, and activity streaks. Browser review uses synthetic data and an injected in-memory progress API; no real profile, weight record, or live LLM request is written during this review. Authenticated MongoDB persistence remains unverified in this pass. Existing UTC day keys are preserved; a local-calendar migration must cover old plan/log keys and server dates together. Historical weekly server workout dates remain a separate known gap and are not used to fabricate browser history.
+
+
+### Nutrition consistency verification (26 October 2026)
+
+29 backend tests, 16 client tests, and the production build pass. New regressions cover a fixed 130 g target with an 87 g day, target tampering in AI output, excessive macros, energy mismatches, authoritative custom settings, bounded invalid-output correction, no network replay, persisted target fields, strict/fallback response formats, and full-day swap checks. Existing logged-meal replacement coverage still passes. Browser review at 1280 px and 390 px checks the comparison table, exact shortfall, successful rebuild presentation, and unchecked legacy-menu recovery. Temporary review files and owned sample storage are removed.
+
+A live service-only generation with fictional age 30, male, 108 kg, 180 cm, light activity, fat-loss goal and vegetarian preferences passed: targets 2,400 kcal / 173 g protein / 277 g carbs / 67 g fats; four meals totalled 2,400 kcal / 173 g protein / 287 g carbs / 62 g fats. Earlier provider JSON-format failures were addressed with strict schemas plus explicit output budgets/low reasoning; the final run passed. This establishes provider transport, arithmetic and target matching for one synthetic case, not verified ingredient-level composition or a personal recommendation for the user. No authenticated account/database write was performed. The public Nutrition image is refreshed from this sample (`docs/screenshots/nutrition-target-gallery.png`).
+
+
+### Reusable nutrition targets and personalized schedule contract (26 October 2026)
+
+`backend/src/contracts/nutrition.js` and its browser mirror `client/src/contracts/nutrition.js` are package-local copies of the same pure contract, checked by a cross-package behavioral parity test. Each deployment remains self-contained with its existing npm scripts/dependencies; no access outside its package root is required. Target input signatures include age, gender, height, goal, activity, macro mode and custom grams. Weight is handled separately by comparing the latest actual measured weight (falling back to profile weight) against `nutritionTargetBasis.weightKg`. Small cumulative changes eventually reaching the configured percentage trigger re-evaluation. Reused/skipped entries do not become fresh measurements. Successful re-evaluation resets the basis. No daily expiry, automatic athlete formula, or forced overwrite of custom targets is introduced.
+
+The broader menu signature also includes schedule order/IDs/labels/types/times, dietary preference, sorted allergies/allergy notes, food region, budget and general notes. Names/email do not invalidate targets or menus. New plans carry their schedule and signature, and new meals have slotId/label/time in addition to their original completion ID. Validation requires exactly one meal per saved slot (2–6), respects repeated snacks, orders by schedule and derives calorie totals. Per-slot budget guidance sums exactly to the saved targets and gives snack slots smaller suggested shares; it does not change daily targets or relax validation. One correction attempt sees its prior output and numeric validation error. Historical cards use their saved schedule and targets, not today's preferences. Legacy plans with no schedule use the four-slot compatibility mapping and retain extra saved meals.
+
+Target cache metadata is server-owned and is excluded from profile write input. Custom macros are normalized and persisted during profile saving; auto targets resolve lazily on the first protected nutrition ensure/generation. Failed estimation leaves saved targets/menu intact and returns a retryable UI error. Compare-and-set profile/weight guards prevent an in-flight target estimate from overwriting preferences edited meanwhile; plan generation similarly checks current profile/target values before saving. All ownership filters use the Firebase token UID. Worker-local promise maps coalesce simultaneous requests; they are not distributed locks or permanent caches. Old account data does not need a destructive migration: missing targets resolve once, missing schedules default to four, and stale cached menus get an explicit rebuild action that retains completed food IDs/calories in the journal.
+
+Verification: 46 backend and 19 client tests cover reuse without further target-estimation calls, concurrent target/menu requests, 5% cumulative weight changes/reset/configuration, authoritative custom macros, protected metadata, stale profile races, ORM serialization, 2/3/5/6 meal days, distinct snack swaps, legacy slots, target comparisons and retained logged snacks after 5→3 rebuilding. Production build passes; the expanded profile form loads in its own chunk. Desktop/390 px browser review uses isolated synthetic profiles and an in-memory API adapter for save/rebuild presentation; no production auth bypass is present. A live service-only five-meal generation used saved 2,400 kcal / 173 g protein targets: five unique slots, 176 g planned protein, one `nutrition_diet` request and zero target-estimation requests. An earlier rejected meal-energy mismatch led to improved budget/correction guidance; numeric validation stayed unchanged. No authenticated MongoDB records or real-user data were written during this verification. Ingredient-level nutrition remains estimated.
+
+Coach profile context now includes the saved target values, their current/outdated status and personal meal labels/times. Trainer follow-ups use those saved values instead of re-estimating daily targets; scope behavior is unchanged.

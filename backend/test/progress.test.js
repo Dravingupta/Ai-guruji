@@ -70,6 +70,7 @@ test('future personalization uses measured weight without overwriting the baseli
 
 
 test('a stale profile edit cannot reset a check-in frequency preference', async t => {
+    t.mock.method(User, 'findOne', async () => ({ uid: 'owner', name: 'Old name' }));
     const update = t.mock.method(User, 'findOneAndUpdate', async (query, data) => data);
     await createOrUpdateProfile(request({ name: 'Updated name', weighInFrequency: 'daily' }), res());
     assert.equal(update.mock.calls[0].arguments[1].name, 'Updated name');

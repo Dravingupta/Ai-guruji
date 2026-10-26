@@ -7,23 +7,21 @@ Redesign: 25 October 2026. User-selected direction: **athletic dark — graphite
 - Dark background `#111410`, sidebar `#141713`, surfaces `#1a1e18`, borders `#2e3528`, primary text `#f0f3e9`, muted text `#9ba593`.
 - Lime `#bdf366` for primary actions, active navigation, completion, and focused controls. Orange is a secondary movement accent.
 - DM Sans for interface text; Barlow Condensed for large athletic display headlines. Both use Google Fonts with local sans-serif fallbacks.
-- Shared semantic CSS variables and screen classes are in `client/src/index.css`. Light appearance uses the same component structure with a complete alternate palette.
-- Dark is the default. Saved light preference is preserved; toggles remain available in desktop and mobile dashboards.
+- Shared semantic CSS variables and screen classes are in `client/src/index.css`. Dark tokens apply directly to `:root`; there is no alternate palette or theme class requirement.
+- Dark is the only appearance. The theme provider, hook, saved-preference handling, and public/desktop/mobile appearance controls were removed on 26 October 2026. Legacy `theme` values are ignored.
 - Main responsive breakpoints: 1150, 900, 700, and 380 pixels. Mobile navigation accounts for the safe-area inset. Motion respects prefers-reduced-motion.
 
-## Light-theme finish
+## Dark-only appearance (26 October 2026)
 
-Reworked on 25 October 2026 after the user rejected the mint/pastel version. Light mode now has a consistent warm fitness identity: sand canvas (`#e9e2d6`), linen sidebar (`#ded6c7`), warm paper cards (`#f4ede1`), charcoal-olive text (`#292c24`), and secondary text (`#58564a`). Terracotta (`#b5472b`, light action text `#fff5e9`) identifies actions; dark rust (`#903923`) identifies links/focus. Deep olive (`#485239`) anchors the checklist and coach panel. The Training session hero uses olive with cream text. The dark theme tokens are unchanged.
+All screens and native controls use the existing graphite/lime palette from first paint. The walkthrough uses refreshed 1280×720 dark screenshots of the real components with fictional Aarav Sharma and isolated sample data. PNG sources are `docs/screenshots/dark-only-{overview,nutrition,training,progress}.png`; deployed WebP assets remain at the existing product image paths. Historical light screenshots below document prior iterations and are superseded by this change.
 
-Overview has a larger editorial headline and an arched crop of the existing athlete image on desktop. Phones use the movement mark to keep the hero compact and its text unobstructed. Cards share consistent warm neutral surfaces, subtle shadows and borders; thin accents distinguish energy metrics, while olive completion states identify logged meals/exercises. Nutrition, Training, Progress, Profile, coach, dialogs, landing, and the public walkthrough inherit the same system. The walkthrough content/layout is retained, with fresh app screenshots.
-
-Public landing and walkthrough have appearance controls; the saved preference still uses the shared theme provider. Light-specific layout/style rules are centralized under the sand/clay/olive comment in `index.css` and scoped to `:root:not(.dark)`. Avoid introducing unrelated pastel card fills or hardcoded white panels. Checked primary/secondary text pairs on the shared light surfaces exceed 4.5:1 contrast; the primary action pair is 5:1. Olive panels use explicit foreground colors rather than inheriting the body ink.
+Verification: production client build and all 14 client tests pass. Desktop (1280×720) and phone (390×844) review uses isolated synthetic data with a legacy `theme=light` preference to confirm it cannot activate light mode. No authenticated account changes or AI requests are needed.
 
 ## Screens and ownership
 
 | Area | Implementation |
 | --- | --- |
-| Landing | `LandingPage.jsx`: athletic photographic hero, real feature descriptions, three feature panels, working auth, theme toggle, and public walkthrough links |
+| Landing | `LandingPage.jsx`: athletic photographic hero, real feature descriptions, three feature panels, working auth and public walkthrough links |
 | Authentication | `Auth.jsx`: split photographic layout on desktop, single column on mobile, Google/email sign-in and signup, show password, loading and inline errors |
 | Profile editor | `ProfileForm.jsx`: three-step sidebar/progress layout, inline validation, selectable goals/diet/allergies, macros, optional body type/notes, saving/cancel states |
 | Profile overview | `ProfileOverview.jsx`: identity, read-only measurements/preferences/goals, local activity summary, explicit Edit button |
@@ -107,7 +105,7 @@ Progress UI review uses synthetic data through a temporary injected API (no prod
 
 `/how-it-works` is public for all visitors and lazy-loaded from `AppRouter.jsx`. Landing links to it in navigation, hero, and footer; dashboard links appear in its sidebar and footer. App CTAs respect authentication. The walkthrough explains the actual product purpose, profile → plans → logging/follow-up → progress journey, implementation choices, and current persistence limits. It makes no fabricated user/outcome claims. Its coach conversation is explicitly illustrative.
 
-Product assets are optimized WebP files in `client/public/images/product/`: `overview.webp`, `nutrition.webp`, `training.webp`, and `progress.webp` (about 205 KB combined). They are actual 1280×720 browser captures of the app, using fictional Aarav Sharma and isolated sample plans/measurements. Training demonstrates the existing dark theme; the other three demonstrate the new light palette. Full PNG source captures are `docs/screenshots/fitness-light-overview.png`, `fitness-light-nutrition.png`, `tour-training.png`, and `fitness-light-progress.png`. These static assets must be refreshed when corresponding screens materially change. They are never injected into production user data.
+Product assets are optimized WebP files in `client/public/images/product/`: `overview.webp`, `nutrition.webp`, `training.webp`, and `progress.webp` (about 205 KB combined). They are actual 1280×720 browser captures of the app, using fictional Aarav Sharma and isolated sample plans/measurements. All four show the dark interface; current PNG sources are `docs/screenshots/dark-only-overview.png`, `dark-only-nutrition.png`, `dark-only-training.png`, and `dark-only-progress.png`. These static assets must be refreshed when corresponding screens materially change. They are never injected into production user data.
 
 The gallery uses the shared native dialog, labelled images, Escape dismissal, focus return, and a keyboard-focusable horizontal image viewport on phones. Screenshots below the hero load lazily. Public content includes a skip link, semantic headings and navigation, and reduced-motion support. The Overview date badge is removed only from Overview; Training, Nutrition, and history date controls retain their context.
 
@@ -128,3 +126,23 @@ Current previews: `screenshots/fitness-light-overview.png`, `fitness-light-nutri
 Public signed-out pages stay usable while an anonymous readiness request wakes the backend. Signed-in visitors see the loader while their real profile is read, then continue automatically; infrastructure errors cannot trigger onboarding. The total read retry window is two minutes, after which an error state requires an explicit retry. No paid model request or data mutation is retried. See ARCHITECTURE.md for cancellation and endpoint contracts.
 
 Verification: 14 client tests, 20 backend tests, and client production build; simulated loading/failure/retry, theme and phone layout checks with the production presentation component. The local backend was not listening, so no live authenticated cold-start or Render deployment was tested. Temporary visual entry files were removed. Previews: `screenshots/startup-desktop.png`, `startup-error-desktop.png`, `startup-mobile.png`, and `startup-error-mobile-light.png`.
+
+
+## Nutrition targets and menu consistency (26 October 2026)
+
+Nutrition now shows Daily target and Planned meals side by side for energy, protein, carbs and fats, directly below the menu summary. Protein is labelled as a minimum. Targets are estimates saved with that plan; custom targets come from the user's macro settings. The comparison table stacks below its explanation on phones. Old cached menus with no structured targets show an unchecked-menu notice and an explicit Rebuild meal plan action for today; below-target menus show the actual protein shortfall. Historical menus remain read-only. Independent unverified intake tips are hidden for unchecked menus, and new generation uses the target panel instead of AI-written tips. Rebuilding retains logged food through the existing journal helper.
+
+Screenshots: `screenshots/nutrition-target-shortfall.png`, `nutrition-target-validated.png`, and `nutrition-target-mobile.png` use isolated synthetic data. Browser checks cover 130 g target vs 87 g planned (43 g shortfall), the rebuilt 130 g menu, and the legacy-menu warning. No account data is changed by this visual review.
+
+The public Nutrition WebP now comes from `screenshots/nutrition-target-gallery.png`, a real service-generated menu in the dashboard using fictional data. The table and cards explicitly identify nutrition as estimated; validation checks consistency of model numbers, without a food-composition database.
+
+
+## Saved targets and personal meal schedules (26 October 2026)
+
+Profile onboarding/editing now offers automatic saved targets or custom grams, a significant-weight review threshold (default 5%, selectable 3/5/10%), and 2–6 editable meal slots. Slot labels, meal type, order from the selected template and optional local wall-clock times are saved on the profile; the existing four-slot schedule is the compatibility default. Changing the count preserves matching slot labels/times. Time inputs store changes on input for native browser compatibility.
+
+Profile overview displays saved daily calories/macros, automatic-target weight basis and saved date, the personal meal schedule, edit action and explicit AI review action. The profile form is lazy-loaded. Nutrition renders the saved plan schedule with dynamic counts/progress, independent repeated snacks, labels and times. Changed food/schedule/target inputs flag old current-day menus and disable swaps until rebuilt; rebuilding retains logged food. Historical menus use their own snapshots and never get replaced. Profile-based target refreshes have loading/error/retry feedback and do not block reading a saved menu.
+
+Browser previews with isolated synthetic data: `screenshots/personal-nutrition-profile.png`, `personal-nutrition-desktop.png`, `personal-nutrition-mobile.png`, and `personal-meal-schedule-editor.png`. Checked five independent meals with two snacks, logging, three-meal customization, saved times, stale-menu recovery and retained food after rebuilding. The public Nutrition WebP is refreshed from the current five-meal preview. No real-account data is written by the visual fixtures.
+
+Current public Nutrition source: `screenshots/personal-nutrition-gallery.png` (1280×720, five scheduled meals with isolated sample data). Long custom meal labels wrap within the cards/profile schedule on phones.

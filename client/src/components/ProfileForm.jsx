@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { defaultMealSchedule, normalizeMealSchedule, MEAL_TYPES } from '../contracts/nutrition.js';
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Dumbbell, Home, Loader2, Target, Utensils, User } from 'lucide-react';
 import { DietaryPreference, Goal, ActivityLevel, BodyType } from '../constants';
 import { Brand, Button, Choice, Field } from './ui';
@@ -41,16 +42,14 @@ const ProfileForm = ({
     budgetLevel: 'medium',
     bodyType: BodyType.Unsure,
     macroMode: 'auto',
+    mealSchedule: defaultMealSchedule(),
+    nutritionWeightReviewPercent: 5,
     allergies: [],
     allergyNotes: '',
     notes: '',
     ...initialData
   }));
-  const [macros, setMacros] = useState(initialData?.customMacros || {
-    protein: '',
-    carbs: '',
-    fats: ''
-  });
+  const [macros, setMacros] = useState({ protein: '', carbs: '', fats: '', ...initialData?.customMacros });
   const update = (name, value) => {
     setForm(previous => ({
       ...previous,
@@ -71,9 +70,12 @@ const ProfileForm = ({
     setStep(value => value + 1);
   };
   const save = () => {
-    if (form.macroMode === 'custom' && Object.values(macros).some(value => !Number(value) || Number(value) < 0)) return setError('Enter a positive target for protein, carbs, and fats.');
+    if (form.macroMode === 'custom' && ['protein', 'carbs', 'fats'].some(key => !Number.isFinite(Number(macros[key])) || Number(macros[key]) <= 0)) return setError('Enter a positive target for protein, carbs, and fats.');
+    let mealSchedule;
+    try { mealSchedule = normalizeMealSchedule(form.mealSchedule); } catch (failure) { return setError(failure.message); }
     onSave({
       ...form,
+      mealSchedule,
       uid,
       email: email || form.email,
       customMacros: form.macroMode === 'custom' ? Object.fromEntries(Object.entries(macros).map(([key, value]) => [key, Number(value)])) : undefined
@@ -176,15 +178,28 @@ const ProfileForm = ({
         <div className="field">
           <span className="field-label">Nutrition preferences</span>
           <div className="choices">
-            <Choice selected={form.macroMode === 'auto'} onClick={() => update('macroMode', 'auto')}>Use plan suggestions</Choice>
+            <Choice selected={form.macroMode === 'auto'} onClick={() => update('macroMode', 'auto')}>Let AI set my targets</Choice>
             <Choice selected={form.macroMode === 'custom'} onClick={() => update('macroMode', 'custom')}>Set my macro targets</Choice>
           </div>
-          <span className="field-hint">Saved on your profile for guidance from your coach.</span>
+          <span className="field-hint">Daily targets are saved on your profile and reused for your meals.</span>
         </div>
         {form.macroMode === 'custom' && <div className="form-grid three-columns">{['protein', 'carbs', 'fats'].map(key => <Field key={key} label={`${key.charAt(0).toUpperCase() + key.slice(1)} (g)`}><input type="number" min="1" value={macros[key]} onChange={event => setMacros(previous => ({
                 ...previous,
                 [key]: event.target.value
               }))} /></Field>)}</div>}
+        {form.macroMode !== 'custom' && <Field label="Re-evaluate targets after a weight change"><select value={form.nutritionWeightReviewPercent ?? 5} onChange={event => update('nutritionWeightReviewPercent', Number(event.target.value))}>{[3, 5, 10].map(value => <option key={value} value={value}>{value}% from the weight used for my targets</option>)}</select><small className="field-hint">Smaller weigh-in changes reuse your targets. Your goal or activity changes can also refresh them.</small></Field>}
+        <div className="meal-schedule-editor">
+          <div><p className="eyebrow">YOUR EATING ROUTINE</p><h3>A schedule that fits your day</h3><p className="field-hint">Use your preferred routine or a schedule from your dietitian. Daily targets are shared across these meals.</p></div>
+          <Field label="Meals per day"><select value={(form.mealSchedule || defaultMealSchedule()).length} onChange={event => {
+            const previous = normalizeMealSchedule(form.mealSchedule);
+            update('mealSchedule', defaultMealSchedule(Number(event.target.value)).map(slot => previous.find(item => item.id === slot.id) || slot));
+          }}>{[2, 3, 4, 5, 6].map(count => <option value={count} key={count}>{count} meals</option>)}</select></Field>
+          {(form.mealSchedule || defaultMealSchedule()).map((slot, index) => <div className="meal-schedule-row" key={slot.id}>
+            <Field label={`Meal ${index + 1} label`}><input maxLength={50} value={slot.label} onChange={event => update('mealSchedule', (form.mealSchedule || defaultMealSchedule()).map(item => item.id === slot.id ? { ...item, label: event.target.value } : item))} /></Field>
+            <Field label={`Meal ${index + 1} type`}><select value={slot.type} onChange={event => update('mealSchedule', (form.mealSchedule || defaultMealSchedule()).map(item => item.id === slot.id ? { ...item, type: event.target.value } : item))}>{MEAL_TYPES.map(type => <option value={type} key={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>)}</select></Field>
+            <Field label={`Meal ${index + 1} time (optional)`}><input type="time" value={slot.time || ''} onInput={event => update('mealSchedule', (form.mealSchedule || defaultMealSchedule()).map(item => item.id === slot.id ? { ...item, time: event.target.value } : item))} /></Field>
+          </div>)}
+        </div>
         <details className="optional-details">
           <summary>More about you <span>Optional</span></summary>
           <div className="form-stack">

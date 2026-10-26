@@ -80,7 +80,11 @@ export const AuthProvider = ({ children }) => {
         setUserProfile(profile);
     };
 
-    return <AuthContext.Provider value={{ user, userProfile, loading, error, logout, refreshProfile, retrySession }}>
+    const acceptProfile = useCallback(profile => {
+        if (auth.currentUser?.uid === profile?.uid) setUserProfile(profile);
+    }, []);
+
+    return <AuthContext.Provider value={{ user, userProfile, loading, error, logout, refreshProfile, retrySession, acceptProfile }}>
         {children}
     </AuthContext.Provider>;
 };

@@ -2,18 +2,13 @@ import api from './api';
 import { retryStartupRead } from '../utils/backendStartup';
 
 // Diet APIs
-export const generateDietPlan = async (profile) => {
-    const response = await api.post('/diet/generate', profile); // Profile is part of user in DB, but we might verify it. 
-    // Actually, we should trigger generation with stored profile or explicit. 
-    // Based on current flow, frontend passes profile to AI. 
-    // We'll keep sending profile or let backend fetch it.
-    // Backend diet controller expects user to be in DB. 
-    // Let's assume we trigger generation.
+export const generateDietPlan = async () => {
+    const response = await api.post('/diet/generate');
     return response.data;
 };
 
-export const swapMeal = async (currentMeal) => {
-    const response = await api.post('/diet/swap-meal', { meal: currentMeal });
+export const swapMeal = async (currentMeal, plan) => {
+    const response = await api.post('/diet/swap-meal', { meal: currentMeal, plan });
     return response.data;
 };
 
@@ -54,6 +49,8 @@ export const saveProfile = async (profileData) => {
     const response = await api.post('/users/profile', profileData);
     return response.data;
 };
+
+export const ensureNutritionTargets = async (review = false) => (await api.post('/users/nutrition-targets', { review })).data;
 
 export const analyzeBodyImage = async (base64Image) => {
     // Mock or implemented backend endpoint
