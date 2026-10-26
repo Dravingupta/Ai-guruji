@@ -1,6 +1,6 @@
-import admin from 'firebase-admin';
+import { getAuth } from 'firebase-admin/auth';
 
-export const verifyToken = async (req, res, next) => {
+export const createTokenVerifier = (verifyIdToken = token => getAuth().verifyIdToken(token)) => async (req, res, next) => {
     try {
         const token = req.headers.authorization?.split('Bearer ')[1];
 
@@ -8,7 +8,7 @@ export const verifyToken = async (req, res, next) => {
             return res.status(401).json({ error: 'No token provided' });
         }
 
-        const decodedToken = await admin.auth().verifyIdToken(token);
+        const decodedToken = await verifyIdToken(token);
         req.user = {
             uid: decodedToken.uid,
             email: decodedToken.email,
@@ -19,3 +19,5 @@ export const verifyToken = async (req, res, next) => {
         res.status(401).json({ error: 'Invalid or expired token' });
     }
 };
+
+export const verifyToken = createTokenVerifier();

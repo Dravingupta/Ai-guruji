@@ -57,7 +57,7 @@ Copy [backend/.env.example](backend/.env.example) to `backend/.env` and [client/
 - **Framework**: React 18.2.0
 - **Build Tool**: Vite 5.0
 - **Styling**: TailwindCSS 3.3.5
-- **Routing**: React Router DOM 6.30.2
+- **Routing**: React Router DOM 7.18.4
 - **Icons**: Lucide React
 - **Authentication**: Firebase 10.0
 - **HTTP Client**: Axios 1.6.0
@@ -66,7 +66,7 @@ Copy [backend/.env.example](backend/.env.example) to `backend/.env` and [client/
 - **Runtime**: Node.js with ES Modules
 - **Framework**: Express 4.18.2
 - **Database**: MongoDB with Mongoose 8.0.0
-- **Authentication**: Firebase Admin SDK 12.0.0
+- **Authentication**: Firebase Admin SDK 14.5.0 (modular API)
 - **AI Service**: Google Gemini Interactions API (`@google/genai`; `GEMINI_MODEL`, default `gemini-3.6-flash`)
 - **CORS**: Enabled for frontend communication
 
@@ -147,7 +147,7 @@ Ai-guruji/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (v20 or higher; required by the Google SDK)
+- Node.js 24 (`nvm use`; matches the tested runtime and hosting configuration)
 - MongoDB (local or Atlas)
 - Firebase account
 - Google Gemini API key
@@ -164,7 +164,7 @@ cd ai-guruji
 
 ```bash
 cd backend
-npm install
+npm ci
 ```
 
 Create a `.env` file in the `backend` directory:
@@ -198,7 +198,7 @@ FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project-id.iam.gserviceaccoun
 
 ```bash
 cd ../client
-npm install
+npm ci
 ```
 
 Create a `.env` file in the `client` directory:
@@ -302,17 +302,21 @@ npm run preview
 ## 🌐 Deployment
 
 ### Frontend (Vercel)
-```bash
-cd client
-vercel --prod
-```
+
+1. Set project root to `client`, Node.js to `24.x`, install command to `npm ci`, build command to `npm run build`, and output directory to `dist`.
+2. Set the browser variables from `client/.env.example`. `VITE_API_URL` must be the backend HTTPS URL **including `/api`**. These values are embedded at build time, so redeploy after changing them.
+3. Add the deployed frontend hostname to Firebase Authentication's authorized domains. Enable the Google/email providers the app uses.
+4. Keep Gemini keys, MongoDB credentials and Firebase Admin service-account credentials only in the backend environment.
 
 ### Backend (Render)
-1. Create a new Web Service on Render
-2. Connect your GitHub repository
-3. Set build command: `cd backend && npm install`
-4. Set start command: `cd backend && npm start`
-5. Add environment variables from `.env`
+
+1. Connect the repository and set Root Directory to `backend` (the blueprint at `backend/render.yaml` declares it).
+2. Use Node `24.x`, build command `npm ci`, start command `npm start`, and health path `/api/health`.
+3. Add backend variables from `backend/.env.example` to Render's environment. Set `NODE_ENV=production`, `FRONTEND_URL` to the exact frontend origin, and `GEMINI_MODEL=gemini-3.6-flash`.
+4. Set MongoDB and Firebase Admin credentials using the same Firebase project as the client. Local `.env` files are not deployed by Git.
+5. Include both `package-lock.json` files in the deployment commit. They pin the dependency versions verified by audit and tests; avoid `npm audit fix --force` during deployment.
+
+Before opening the app to users, confirm `/api/health` returns 200 and smoke-test sign-in, profile loading and one meal generation on the deployed environment. Local audits/tests/builds do not verify hosting secrets, Firebase domain settings or live service access.
 
 ### Database (MongoDB Atlas)
 1. Create a cluster at [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)

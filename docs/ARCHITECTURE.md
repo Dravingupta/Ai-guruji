@@ -26,6 +26,8 @@ Scoped reusable-target/schedule update, 26 October 2026 (supersedes per-plan tar
 
 Scoped Gemini migration, 26 October 2026 (supersedes all earlier Groq/GPT-OSS transport descriptions): generation now uses the official `@google/genai` SDK and Gemini Interactions API, default `gemini-3.6-flash`. Server key/model settings are `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) and `GEMINI_MODEL`. Native steps carry stateless history (`store: false`); JSON response schemas preserve nutrition validation. SDK transport retries are disabled, including for 429; one correction remains available only for completed but invalid nutrition output. Saved targets/schedules/cache contracts remain unchanged. Verification: 51 backend tests, 19 client tests and the production client build pass. Tests exercise the installed SDK with mocked HTTP. A subsequent live check with the configured Google key confirmed model access (`models/gemini-3.8-flash`); a minimal Interactions request returned HTTP 503 high demand, and a synthetic five-meal request also returned 503. Those agent-run requests did not complete. The user subsequently reported successful operation with `gemini-3.6-flash`; the default, setup template and documentation now use that exact configured model. No additional paid live check was made for this default-only change; the five provider tests pass. No account/database data was changed. Earlier successful live checks below describe the former provider only.
 
+Scoped deployment-dependency update, 26 October 2026: the backend initially reported 25 audit findings (three critical). Compatible patches, removal of unused backend Axios and migration to Firebase Admin 14.5.0 modular app/auth imports clear those findings. The client moves to Firebase 13.1.0, React Router DOM 7.18.4, Vite 7.3.7 and React plugin 5.2.0, retaining React 18 and Tailwind 3. Scoped overrides patch Express's pinned qs (`^6.16.1`) and Firebase Firestore's pinned gRPC (`^1.14.5`); a client selector-parser override (`^7.1.6`) patches Tailwind 3's parser without a styling-system migration. Review these overrides when their parent packages update. Both lockfiles are tracked; hosting uses `npm ci`. Node 24 is selected by `.nvmrc`, both manifests and Render. Verification after clean installs: backend/client npm audits each report zero known vulnerabilities, 54 backend tests and 19 client tests pass, and the production client build passes. Browser checks confirm landing/sign-in rendering and a signed-out `/dashboard` redirect with the upgraded Firebase/router. No production deployment or authenticated live account write was performed.
+
 ## Navigation
 
 - [1. Project at a glance](#1-project-at-a-glance)
@@ -45,16 +47,16 @@ Scoped Gemini migration, 26 October 2026 (supersedes all earlier Groq/GPT-OSS tr
 
 AI Guruji is an Indian fitness-coach web app. Users authenticate, create a fitness profile, receive daily diet and seven-day workout plans, log meals/exercise, and chat with an AI coach.
 
-There are two independent npm packages, both JavaScript ES modules. The backend requires Node.js 20+ for the Google SDK (declared in package engines). There is no monorepo manager, root package, TypeScript, global state library, background worker, or separate AI microservice.
+There are two independent npm packages, both JavaScript ES modules. Both packages declare Node 24.x; `.nvmrc` selects that runtime line. There is no monorepo manager, root package, TypeScript, global state library, background worker, or separate AI microservice.
 
 | Layer | Implementation and responsibility |
 | --- | --- |
-| Browser UI | React `^18.2.0`, React Router DOM `^6.30.2`, Vite `^5.0.0` |
+| Browser UI | React `^18.2.0`, React Router DOM `^7.18.4`, Vite `^7.0.0` |
 | UI styling | Tailwind `^3.3.5`, PostCSS/Autoprefixer, Lucide React icons, DM Sans body and Barlow Condensed display fonts |
-| Client identity | Firebase JS SDK `^10.0.0`: Google popup and email/password |
+| Client identity | Firebase JS SDK `^13.1.0`: Google popup and email/password |
 | Client HTTP | Axios `^1.6.0`; bearer token added per request |
 | API | Express `^4.18.2`, cors, dotenv; Node ES modules |
-| Server identity | Firebase Admin `^12.0.0`: verifies Firebase ID tokens |
+| Server identity | Firebase Admin `^14.5.0`: modular app/auth APIs verify Firebase ID tokens |
 | Persistent server data | MongoDB via Mongoose `^8.0.0` |
 | Generation | Google Gemini Interactions via `@google/genai ^2.31.0`; `GEMINI_MODEL`, default `gemini-3.6-flash` |
 | Daily working data | React state + UID/date-scoped localStorage |
@@ -149,7 +151,7 @@ Dashboard logic is organized by symbols: `get*Key`, `initTrackingIfMissing`, `ha
 | `backend/src/server.js` | dotenv loading, DB/Firebase initialization, HTTP listener |
 | `backend/src/app.js` | Express instance, CORS, JSON limit, six route mounts, health response, final error handler |
 | `backend/src/config/database.js` | `connectDB`; Mongoose connection; exits process on connection failure |
-| `backend/src/config/firebase.js` | `initializeFirebase`; service-account JSON or separate environment fields |
+| `backend/src/config/firebase.js` | `initializeFirebase`; modular cert/initializeApp using service-account JSON or separate environment fields |
 | `backend/src/middlewares/authMiddleware.js` | `verifyToken`; assigns verified `{ uid, email }` to `req.user` |
 | `backend/src/routes/authRoutes.js` | Auth verification route |
 | `backend/src/routes/userRoutes.js` | Profile read/upsert/delete routes |
@@ -158,6 +160,7 @@ Dashboard logic is organized by symbols: `get*Key`, `initTrackingIfMissing`, `ha
 | `backend/src/routes/chatRoutes.js` | Chat message/history routes |
 | `backend/src/controllers/healthController.js` | Public `/api/health` readiness: MongoDB connected and Firebase Admin initialized; no-store JSON; no model call |
 | `backend/test/health.test.js` | Readiness/startup status, public payload and cache policy |
+| `backend/test/auth.test.js` | Verified UID ownership, missing/rejected token protection, modular SDK initialization using both existing credential formats and local malformed-token rejection |
 | `backend/src/controllers/authController.js` | `verifyUser`: profile existence lookup only |
 | `backend/src/controllers/userController.js` | `getProfile`, `createOrUpdateProfile`, `deleteProfile` |
 | `backend/src/controllers/dietController.js` | `createDietPlan`, `getDietHistory`, `swapDietMeal`; also has unused import of `app.js` |
@@ -184,12 +187,14 @@ Dashboard logic is organized by symbols: `get*Key`, `initTrackingIfMissing`, `ha
 | `backend/src/services/coachContext.js` | `summarizePlanContext`: projects selected-day browser meal ingredients/portions, macros, exercise prescriptions/form, warmup/cooldown; excludes arbitrary metadata |
 | `backend/src/services/coachPrompt.js` | `getGreetingResponse` (deterministic brief greeting); `buildCoachPrompt`: conversational behavior, relevant saved profile context, formatting and app-action boundaries |
 | `backend/render.yaml` | Render web service configuration |
-| `.gitignore` | Ignores env files, node_modules, output, and package-lock.json |
+| `.gitignore` | Ignores env files, node_modules and output; both package-lock.json files are tracked |
+| `.nvmrc` | Node 24 runtime line |
+| `backend/package-lock.json`, `client/package-lock.json` | Tested dependency resolution for each deployment root |
 | `README.md` | Product overview; links to this reference; older sections have discrepancies listed below |
 | `AGENTS.md` | Short automatic entry point for future agents |
 | `docs/ARCHITECTURE.md` | This implementation reference |
 
-No tracked test files, CI workflows, migration files, Docker files, or LICENSE file exist in the audited baseline. Configuration templates `client/.env.example` and `backend/.env.example` were added on 25 October 2026 after the initial source audit. A local backend lockfile may exist, but lockfiles are ignored and untracked.
+No tracked test files, CI workflows, migration files, Docker files, or LICENSE file exist in the audited baseline. Configuration templates `client/.env.example` and `backend/.env.example` were added on 25 October 2026 after the initial source audit. Both package lockfiles are now tracked for deployment, and both packages have regression suites.
 
 ## 3. Frontend runtime and user flows
 
@@ -484,7 +489,7 @@ Actual env files/secret values were not used for this documentation. Client `VIT
 | Backend | `FIREBASE_CLIENT_EMAIL` | Used when service-account JSON is absent |
 | Backend | `FIREBASE_PRIVATE_KEY` | Used when service-account JSON is absent; literal `\\n` sequences converted to newlines |
 
-`GEMINI_API_KEY` mentioned in client README is not read by code. `VITE_API_URL` must include `/api` because helpers start with `/users`, `/diet`, etc. If unset, relative helper URLs resolve against the frontend origin without the `/api` mount, so Vite's `/api` proxy does not fix them.
+`GEMINI_API_KEY` is never read by browser code; it belongs only in the backend environment. `VITE_API_URL` must include `/api` because helpers start with `/users`, `/diet`, etc. If unset, relative helper URLs resolve against the frontend origin without the `/api` mount, so Vite's `/api` proxy does not fix them.
 
 ### Local execution
 
@@ -494,29 +499,29 @@ First copy `backend/.env.example` to `backend/.env` and `client/.env.example` to
 
 ```sh
 cd backend
-npm install
+npm ci
 # Configure backend/.env with the backend variables above.
 npm run dev
 ```
 
 ```sh
 cd client
-npm install
+npm ci
 # Configure client/.env with the client variables above.
 npm run dev
 ```
 
-Backend script uses `node --watch`; no Node version is pinned via engines or a runtime-version file. The older README states Node 18+, but compatibility of a particular installed dependency set must be checked. Vite normally uses port 5173 and can choose a different available port. Firebase project needs the intended Google/email auth providers and authorized domains configured outside this repo. MongoDB and service credentials are needed for end-to-end behavior.
+Backend development uses `node --watch`. Use Node 24 (`nvm use` at the repo root); both manifests restrict the major to `24.x` and Render explicitly selects it. Firebase Admin 14 and Vite 7 require newer Node versions than the original project setup. Vite normally uses port 5173 and can choose a different available port. Firebase project needs the intended Google/email auth providers and authorized domains configured outside this repo. MongoDB and service credentials are needed for end-to-end behavior.
 
 If startup fails with `EADDRINUSE` on port 5000, check `lsof -nP -iTCP:5000 -sTCP:LISTEN`. On the audited local Mac, Control Center occupies that port. Local configuration was changed to `PORT=5001` in `backend/.env` and `VITE_API_URL=http://localhost:5001/api` in `client/.env`; the checked-in default remains 5000. Restart Vite after changing its env. If using a relative `/api` base instead of the absolute backend URL, also change the Vite proxy target to the chosen backend port.
 
 ### Build and hosting
 
-- Client: from `client/`, `npm run build` writes `dist/`; `npm run preview` previews it. Vercel should use `client` as project root, npm build, dist output. Its rewrite supports direct `/dashboard` and `/profile` loads.
+- Client: from `client/`, `npm run build` writes `dist/`; `npm run preview` previews it. Vercel should use `client` as project root, Node 24.x, `npm ci` install (declared in vercel.json), `npm run build`, and dist output. Its rewrite supports direct `/dashboard` and `/profile` loads.
 - Vite proxy is development-only. Vercel config has no API reverse proxy; deployed client needs a backend `/api` URL via VITE_API_URL and a rebuild after changing it.
-- Backend: `npm start` runs `src/server.js`; no compile/build stage. `backend/render.yaml` declares free Node service `fitness-backend`, `npm install`, `npm start`, NODE_ENV=production. Commands assume service root `backend`; no `rootDir` is declared, so configure/verify that in hosting setup.
+- Backend: `npm start` runs `src/server.js`; no compile/build stage. `backend/render.yaml` declares free Node service `fitness-backend`, rootDir `backend`, `npm ci`, `npm start`, NODE_ENV=production, NODE_VERSION=24.x, and `/api/health` readiness. Mirror these settings for a manually configured service.
 - All other backend env values must be supplied externally. The repo does not establish a deployed URL, actual database host, enabled Firebase providers, or live provider model availability.
-- `.gitignore` ignores `.env*` and package-lock.json; backend local lockfile is untracked at audit time. No committed lockfile ensures identical installs.
+- `.gitignore` ignores real `.env*` files but permits templates and package lockfiles. Include both lockfiles in the deployment commit. Run `npm ci` in each package; do not resolve fresh dependency versions during hosting builds.
 
 ## 9. Known gaps and behavior traps
 

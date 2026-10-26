@@ -15,7 +15,7 @@ This Git repository contains AI Guruji, a React/Vite client and an Express/Mongo
 - Client: `client/src/main.jsx` → `App.jsx` → auth provider → `AppRouter.jsx`.
 - API: `backend/src/server.js` → `app.js` → routes → Firebase `verifyToken` → controllers → Mongoose models / AI service.
 - Startup safe-read retries live in `client/src/utils/backendStartup.js` (120s total, 15s attempts). Only the explicit profile-not-found 404 permits onboarding; backend/network errors must never route an existing user to setup. `/api/health` is public readiness (MongoDB + Firebase initialized), used for one bounded anonymous warm-up; do not turn it into a keep-alive or retry writes/AI calls.
-- Firebase handles identity; MongoDB stores application profiles. Firebase ID-token UID is the API ownership key (`User.uid`, plan/history `userId`).
+- Firebase handles identity through the modular Admin SDK (`firebase-admin/app` and `firebase-admin/auth`); MongoDB stores application profiles. Firebase ID-token UID is the API ownership key (`User.uid`, plan/history `userId`).
 - All browser API calls go through `client/src/services/api.js` and `backendService.js`. Set `VITE_API_URL` with the `/api` suffix. New protected routes must use `verifyToken`.
 - `Dashboard.jsx` owns daily state and localStorage. Generated plans are saved in MongoDB, but the dashboard does **not** reload server history. Tracking, manual entries, swapped plans, and chat are browser-local. Weight check-ins and their frequency are account-owned MongoDB records through `/api/progress`. Mirrored pure nutrition contracts live in `backend/src/contracts/nutrition.js` and its browser mirror `client/src/contracts/nutrition.js`; each package remains self-contained for deployment.
 - The AI integration is **Google Gemini**, through `@google/genai` Interactions in `backend/src/services/geminiClient.js`. Prompts/validation stay in the historically named `deepseekService.js`. Body-image analysis is a client stub.
@@ -32,21 +32,23 @@ The interface uses the athletic dark design in [docs/DESIGN.md](docs/DESIGN.md).
 
 ## Commands
 
+Use Node 24 (`nvm use` from the repository root). Both package manifests declare `24.x`; Render selects that line explicitly. Commit both package lockfiles and use `npm ci` for reproducible installs. Security overrides patch Express qs, Tailwind selector parsing and Firebase Firestore gRPC; review them when upgrading their parents.
+
 Run each command from the indicated package directory:
 
 | Directory | Command | Purpose |
 | --- | --- | --- |
-| `client/` | `npm install` | Install client dependencies when needed |
+| `client/` | `npm ci` | Install the tested client dependency lockfile |
 | `client/` | `npm run dev` | Vite development server, normally port 5173 |
 | `client/` | `npm test` | Chat formatting, preserved logs, measured-weight trends, date separation, and activity summaries |
 | `client/` | `npm run build` | Production bundle; primary available client check |
 | `client/` | `npm run preview` | Preview the built bundle |
-| `backend/` | `npm install` | Install backend dependencies when needed |
+| `backend/` | `npm ci` | Install the tested backend dependency lockfile |
 | `backend/` | `npm run dev` | Node watch mode, default port 5000 |
 | `backend/` | `npm test` | Chat/plans plus progress validation, ownership, reuse, preferences, and latest-weight context |
 | `backend/` | `npm start` | Run API server |
 
-Both packages now have scoped Node test suites (`npm test`); the client renderer test uses installed Vite/esbuild and React DOM server. There are still no lint scripts, CI workflows, or tracked lockfiles. Report actual checks and any unverified live-service behavior. Never copy real `.env` values or credentials into documentation, fixtures, or logs.
+Both packages now have scoped Node test suites (`npm test`); the client renderer test uses installed Vite/esbuild and React DOM server. Both lockfiles are tracked; no lint scripts or CI workflows exist. Report actual checks and any unverified live-service behavior. Never copy real `.env` values or credentials into documentation, fixtures, or logs.
 
 ## Keep this context useful
 
