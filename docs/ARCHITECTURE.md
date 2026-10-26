@@ -114,7 +114,7 @@ This map covers all application source and tracked configuration files in the au
 | `client/src/utils/backendStartup.js` | Bounded safe-read retries, cancellation/deadlines, owned profile validation, strict missing-profile recognition |
 | `client/test/backend-startup.test.js` | Cold-start failures, HTML responses, exact 404 vs infrastructure errors, UID ownership, hung requests and cancellation |
 | `client/src/components/LandingPage.jsx` | Marketing page; auth callbacks, links to the public walkthrough |
-| `client/src/components/HowItWorks.jsx` | Public product story, user journey, screenshot gallery/native enlargement dialog, stack and storage disclosure; reads auth only to select its CTA destination |
+| `client/src/components/HowItWorks.jsx` | Public product story, user journey, lossless 3× PNG screenshot gallery/native enlargement dialog with full-resolution links, stack and storage disclosure, compact author byline with a portfolio link; reads auth only to select its CTA destination |
 | `client/public/images/product/*.webp` | Four optimized real UI screenshots (Overview, Nutrition, Training, Progress), using isolated synthetic data; refresh when the UI changes |
 | `client/src/components/Auth.jsx` | Firebase Google login, email sign-in/sign-up, error display; route change is driven by auth state |
 | `client/src/components/ProfileOverview.jsx` | Read-only identity, body measurements, goals, preferences, notes, device-local activity snapshot, explicit Edit callback |
@@ -127,7 +127,7 @@ This map covers all application source and tracked configuration files in the au
 | `client/src/utils/progressData.js` | UTC date helpers, safe browser-day reads, measured-only weight summaries, activity summaries/streak, check-in due logic, today/preview date separation |
 | `client/src/components/DietCard.jsx` | Meal list and completion callbacks; internal `RecipeModal`; exported `AddMealModal` |
 | `client/src/components/WorkoutCard.jsx` | Warmup/exercises/cooldown and completion progress; exported `AddWorkoutModal` and manual calorie estimate |
-| `client/src/components/ui.jsx` | Shared Brand, Button, IconButton, Field, Choice, Tag, SectionHeading, CoachMark, TextLink, and accessible native Modal |
+| `client/src/components/ui.jsx` | Shared Brand, CreatorCredit (portfolio link in landing/walkthrough/dashboard footers), Button, IconButton, Field, Choice, Tag, SectionHeading, CoachMark, TextLink, and accessible native Modal |
 | `client/public/images/athlete.png` | Generated monochrome athletic hero image used on landing/login |
 | `client/public/images/food.png` | Generated Indian food editorial image used on landing |
 | `client/test/*.test.js` | Node regression checks for safe chat rendering and preserving logged meals |
@@ -190,7 +190,7 @@ Dashboard logic is organized by symbols: `get*Key`, `initTrackingIfMissing`, `ha
 | `.gitignore` | Ignores env files, node_modules and output; both package-lock.json files are tracked |
 | `.nvmrc` | Node 24 runtime line |
 | `backend/package-lock.json`, `client/package-lock.json` | Tested dependency resolution for each deployment root |
-| `README.md` | Product overview; links to this reference; older sections have discrepancies listed below |
+| `README.md` | Recruiter-facing product overview, screenshots, engineering decisions, architecture summary, setup/deployment instructions and creator attribution; links to this reference for detailed contracts |
 | `AGENTS.md` | Short automatic entry point for future agents |
 | `docs/ARCHITECTURE.md` | This implementation reference |
 
@@ -298,7 +298,7 @@ Success responses currently use status 200, including creation. Raw Mongoose doc
 | `POST /api/chat/message` | `{ message, history, planContext? }` | `{ text }`; uses stored profile and client-supplied history; no DB write |
 | `GET /api/chat/history` | None | First matching ChatHistory's `messages`, else `[]` |
 
-The client helper layer exposes all except auth verify and profile delete; history helpers exist but are unused by screens. There are **no** `/api/diet/current` or `/api/workout/current` routes, despite the older README list.
+The client helper layer exposes all except auth verify and profile delete; history helpers exist but are unused by screens. There are **no** `/api/diet/current` or `/api/workout/current` routes.
 
 Most controller failures return 500 `{ error: error.message }`. The final Express error middleware returns 500 `{ error: 'Something went wrong!', details: err.message }`. There is no centralized validation/error taxonomy, custom JSON 404 handler, pagination, request timeout, rate limiting, or idempotency mechanism. Workout/chat functions still return fallback values on failures. Diet and swap now throw generic retryable errors rather than returning static meals.
 
@@ -547,7 +547,6 @@ These are source-observed behavior or direct consequences of the code, not claim
 | Deletes | Profile-only delete leaves Firebase identity, server plans/history, and browser data; no UI/helper currently invokes it. |
 | UI claims | Gemini Vision/body-image analysis is a stub; coach text cannot execute swaps; no chart library, progress weight history, or enforceable six-day gym split exists. |
 | Visual assets / fonts | Hero images are local generated assets. Fonts are Google-hosted with sans-serif fallbacks; loading external fonts requires network access. Dark is the only appearance; legacy saved preferences are ignored. |
-| Legacy docs | Root README lists nonexistent `/current` routes and says verify creates/updates users; older feature claims may be broader than delivered behavior. Use the source-backed contracts here. |
 | Operational controls | Provider calls have a 60-second timeout. Scoped Node regression tests now exist; no lint/CI, server-wide request timeout, automatic retry, rate limiting, history pagination/retention, transactional weekly save, or structured fallback marker. |
 
 ## 10. Change map

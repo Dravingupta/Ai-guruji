@@ -6,6 +6,9 @@ export const Brand = ({
   <span className="brand-mark"><Activity size={23} strokeWidth={2.6} /></span>
   {!compact && <span>AI GURUJI<span className="brand-dot">.</span></span>}
 </a>;
+export const CreatorCredit = () => <span className="creator-credit">
+  Made by <a href="https://dravingupta.vercel.app/" target="_blank" rel="noopener noreferrer" aria-label="Dravin Gupta’s portfolio (opens in a new tab)">Dravin Gupta <ArrowUpRight size={13} aria-hidden="true" /></a>
+</span>;
 export const Button = ({
   children,
   variant = 'primary',

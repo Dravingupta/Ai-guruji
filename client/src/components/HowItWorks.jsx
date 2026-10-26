@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Activity, ArrowDown, ArrowRight, ArrowUpRight, Check, Dumbbell, Expand, Fingerprint, Layers, MessageCircle, Scale, Utensils } from 'lucide-react';
-import { Brand, Modal, Tag } from './ui';
+import { Brand, CreatorCredit, Modal, Tag } from './ui';
 import { useAuth } from '../contexts/AuthContext';
 
 const screens = [
@@ -16,13 +16,13 @@ export default function HowItWorks() {
   const appPath = user ? '/dashboard' : '/auth';
   useEffect(() => {
     const previous = document.title;
-    document.title = 'How it works · AI Guruji';
+    document.title = 'AI Guruji · A project by Dravin Gupta';
     window.scrollTo(0, 0);
     return () => { document.title = previous; };
   }, []);
   const preview = (screen, eager = false) => <button className={`tour-screen tour-screen-${screen.image}`} onClick={() => setExpanded(screen)} aria-label={`Enlarge ${screen.label.toLowerCase()} screenshot`}>
     <span className="tour-window-bar" aria-hidden="true"><i /><i /><i /><span>AI GURUJI / {screen.label}</span><Expand size={14} /></span>
-    <img src={`/images/product/${screen.image}.webp`} alt={screen.alt} width="1280" height="720" loading={eager ? 'eager' : 'lazy'} fetchPriority={eager ? 'high' : 'auto'} />
+    <img src={`/images/product/${screen.image}.png`} alt={screen.alt} width="3840" height="3300" loading={eager ? 'eager' : 'lazy'} fetchPriority={eager ? 'high' : 'auto'} />
     <span className="tour-expand"><Expand size={13} /> Explore screenshot</span>
   </button>;
   return <div className="how-page">
@@ -35,10 +35,10 @@ export default function HowItWorks() {
     <main id="how-main">
       <section className="tour-hero page-width">
         <div className="tour-hero-copy">
-          <Tag><span className="live-dot" /> THE IDEA BEHIND AI GURUJI</Tag>
           <h1>YOUR ROUTINE.<br /><span>CONNECTED.</span></h1>
           <p className="tour-lead">A personal fitness companion for the way India eats, moves, and lives.</p>
           <p>Meal plans, workouts, everyday logging, and quick trainer-style follow-ups — brought together in one calm, personal space.</p>
+          <a className="tour-byline" href="https://dravingupta.vercel.app/" target="_blank" rel="noopener noreferrer" aria-label="Dravin Gupta’s portfolio (opens in a new tab)"><span className="tour-byline-monogram" aria-hidden="true">DG</span><span>A project by <strong>Dravin Gupta</strong></span><ArrowUpRight size={15} aria-hidden="true" /></a>
           <div className="hero-actions"><a className="btn btn-primary" href="#product-tour">Take the tour <ArrowDown size={17} /></a><Link className="text-link" to={appPath}>Explore the app <ArrowUpRight size={17} /></Link></div>
           <div className="tour-hero-notes"><span><Check size={14} /> Indian food preferences</span><span><Check size={14} /> Home & gym routines</span><span><Check size={14} /> Optional weigh-ins</span></div>
         </div>
@@ -82,7 +82,7 @@ export default function HowItWorks() {
       </section>
       <section className="tour-final page-width"><div><p className="eyebrow">TAKE THE NEXT STEP</p><h2>A LITTLE BETTER.<br /><span>EVERY DAY.</span></h2><p>Start with your preferences. Build a routine that makes sense for you.</p></div><Link to={appPath} className="btn btn-primary">{user ? 'Back to my space' : 'Make it personal'} <ArrowUpRight size={20} /></Link></section>
     </main>
-    <footer className="landing-footer page-width"><Brand /><Link to="/">Back to home <ArrowUpRight size={15} /></Link><small>© {new Date().getFullYear()} AI Guruji</small></footer>
-    {expanded && <Modal title={expanded.title} eyebrow={`${expanded.label} / PRODUCT WALKTHROUGH`} wide onClose={() => setExpanded(null)}><p className="tour-image-hint">Swipe or scroll to inspect the full screen.</p><div className="tour-image-scroll" tabIndex={0} role="region" aria-label="Enlarged screenshot. Scroll horizontally on smaller screens."><img className="tour-modal-image" src={`/images/product/${expanded.image}.webp`} alt={expanded.alt} width="1280" height="720" /></div><p className="tour-sample-note">Actual app screen with a fictional profile and sample data.</p></Modal>}
+    <footer className="landing-footer page-width"><Brand /><Link to="/">Back to home <ArrowUpRight size={15} /></Link><small>© {new Date().getFullYear()} AI Guruji</small><CreatorCredit /></footer>
+    {expanded && <Modal title={expanded.title} eyebrow={`${expanded.label} / PRODUCT WALKTHROUGH`} wide onClose={() => setExpanded(null)}><p className="tour-original-link"><a className="text-link" href={`/images/product/${expanded.image}.png`} target="_blank" rel="noopener noreferrer">Open full-resolution PNG <ArrowUpRight size={16} aria-hidden="true" /></a></p><p className="tour-image-hint">Swipe or scroll to inspect the full screen.</p><div className="tour-image-scroll" tabIndex={0} role="region" aria-label="Enlarged screenshot. Scroll horizontally on smaller screens."><img className="tour-modal-image" src={`/images/product/${expanded.image}.png`} alt={expanded.alt} width="3840" height="3300" /></div><p className="tour-sample-note">Actual app screen with a fictional profile and sample data.</p></Modal>}
   </div>;
 }

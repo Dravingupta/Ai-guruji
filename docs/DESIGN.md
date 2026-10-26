@@ -17,6 +17,12 @@ All screens and native controls use the existing graphite/lime palette from firs
 
 Verification: production client build and all 14 client tests pass. Desktop (1280×720) and phone (390×844) review uses isolated synthetic data with a legacy `theme=light` preference to confirm it cannot activate light mode. No authenticated account changes or AI requests are needed.
 
+## Creator credit (26 October 2026)
+
+Landing, How it works and dashboard footers share `CreatorCredit` from `ui.jsx`: “Made by Dravin Gupta” links to `https://dravingupta.vercel.app/` in a new tab with `noopener noreferrer`. The muted credit uses the existing text/accent colors, a visible keyboard focus ring and wrapping footer rows on smaller screens. The README author entry links to the same portfolio. Production build passes; the landing footer was verified in-browser at 1280×720. Preview: `docs/screenshots/creator-credit-footer.png`.
+
+The walkthrough identifies Dravin Gupta in its page title and compact hero byline, which links to his portfolio. Authorship stays in the byline and shared footers; there is no separate creator section or source-code link. The README leads with authorship and presents product screenshots, source-backed engineering decisions, setup, deployment and an attribution request, with the portfolio as the author destination.
+
 ## Screens and ownership
 
 | Area | Implementation |
@@ -25,7 +31,7 @@ Verification: production client build and all 14 client tests pass. Desktop (128
 | Authentication | `Auth.jsx`: split photographic layout on desktop, single column on mobile, Google/email sign-in and signup, show password, loading and inline errors |
 | Profile editor | `ProfileForm.jsx`: three-step sidebar/progress layout, inline validation, selectable goals/diet/allergies, macros, optional body type/notes, saving/cancel states |
 | Profile overview | `ProfileOverview.jsx`: identity, read-only measurements/preferences/goals, local activity summary, explicit Edit button |
-| How it works | `HowItWorks.jsx`: public recruiter-friendly story, setup-to-progress journey, four actual screenshots with accessible enlargement, focused-coach example, implementation decisions and storage disclosure |
+| How it works | `HowItWorks.jsx`: public recruiter-friendly story, setup-to-progress journey, four actual screenshots with accessible enlargement, focused-coach example, implementation decisions, storage disclosure and a compact author byline |
 | Overview | `Dashboard.jsx`: greeting without a date badge, quick log action, energy/checklist metrics, meal/session previews, real seven-day calorie bars, coach entry |
 | Nutrition | `DietCard.jsx`: photographic daily summary with macro totals, ordered meal lineup and missing-slot recovery, numbered meal cards with macro bars, completion, swaps, recipes, food journal |
 | Training | `WorkoutCard.jsx`: photographic session summary and progress ring, movement icon tiles, exercise completion, expandable form cues/warmup/cooldown, extra movement log; Dashboard owns saved-data week strip |
@@ -105,7 +111,7 @@ Progress UI review uses synthetic data through a temporary injected API (no prod
 
 `/how-it-works` is public for all visitors and lazy-loaded from `AppRouter.jsx`. Landing links to it in navigation, hero, and footer; dashboard links appear in its sidebar and footer. App CTAs respect authentication. The walkthrough explains the actual product purpose, profile → plans → logging/follow-up → progress journey, implementation choices, and current persistence limits. It makes no fabricated user/outcome claims. Its coach conversation is explicitly illustrative.
 
-Product assets are optimized WebP files in `client/public/images/product/`: `overview.webp`, `nutrition.webp`, `training.webp`, and `progress.webp` (about 205 KB combined). They are actual 1280×720 browser captures of the app, using fictional Aarav Sharma and isolated sample plans/measurements. All four show the dark interface; current PNG sources are `docs/screenshots/dark-only-overview.png`, `dark-only-nutrition.png`, `dark-only-training.png`, and `dark-only-progress.png`. These static assets must be refreshed when corresponding screens materially change. They are never injected into production user data.
+Current product assets are lossless 3840×3300 PNG files in `client/public/images/product/`: `overview.png`, `nutrition.png`, `training.png`, and `progress.png`. These supersede the earlier lossy WebP files and the JPEG-encoded historical files with `.png` names. They are fresh 3× DOM-to-canvas exports of the actual Dashboard components at a 1280×1100 viewport, using fictional Aarav Sharma, five sample meals with matching target totals, sample workouts and synthetic weight entries. The temporary local studio used html-to-image with embedded fonts/images, preserved single-line text and explicit SVG styles. No image upscaling, AI-generated interface pixels, paid AI request or real-account write was used. Temporary export code and dependencies are excluded from the app. The tour and README use the full PNGs; the enlargement dialog also links directly to the original. Refresh these assets when the corresponding screens materially change.
 
 The gallery uses the shared native dialog, labelled images, Escape dismissal, focus return, and a keyboard-focusable horizontal image viewport on phones. Screenshots below the hero load lazily. Public content includes a skip link, semantic headings and navigation, and reduced-motion support. The Overview date badge is removed only from Overview; Training, Nutrition, and history date controls retain their context.
 
@@ -146,3 +152,6 @@ Profile overview displays saved daily calories/macros, automatic-target weight b
 Browser previews with isolated synthetic data: `screenshots/personal-nutrition-profile.png`, `personal-nutrition-desktop.png`, `personal-nutrition-mobile.png`, and `personal-meal-schedule-editor.png`. Checked five independent meals with two snacks, logging, three-meal customization, saved times, stale-menu recovery and retained food after rebuilding. The public Nutrition WebP is refreshed from the current five-meal preview. No real-account data is written by the visual fixtures.
 
 Current public Nutrition source: `screenshots/personal-nutrition-gallery.png` (1280×720, five scheduled meals with isolated sample data). Long custom meal labels wrap within the cards/profile schedule on phones.
+
+
+Screenshot quality verification (26 October 2026): inspected all four PNG exports, checked the chart styling, confirmed PNG signatures and 3840×3300 dimensions, and checked the production build. Earlier WebP/source descriptions above and below are historical and superseded by the current PNG assets.

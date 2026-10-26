@@ -1,371 +1,191 @@
-# 🏋️ AI Guruji - Indian AI Fitness Coach
+# AI Guruji
 
-An intelligent, AI-powered fitness and nutrition coach specifically designed for Indian users. Get personalized diet plans, home workout routines, and real-time coaching powered by advanced AI technology.
+**Created by [Dravin Gupta](https://dravingupta.vercel.app/)** · Full-stack fitness & nutrition project
 
-The interface has been redesigned with an athletic dark visual system, lime accents, responsive navigation, and new layouts across every screen. See [design notes](docs/DESIGN.md) for styling ownership and verification.
+[Portfolio](https://dravingupta.vercel.app/) · [Architecture](docs/ARCHITECTURE.md) · [Design notes](docs/DESIGN.md)
 
-## Architecture and future changes
+AI Guruji brings personalized Indian meal plans, weekly workouts, daily logging, weight trends, and focused AI follow-ups into one responsive web app. It is built around a practical question: how can a fitness tool help with the everyday decisions that come *after* receiving a plan?
 
-AI agents should start with [AGENTS.md](AGENTS.md), then use the [architecture and change reference](docs/ARCHITECTURE.md) for runtime flows, every source file's responsibility, API/data contracts, browser storage, configuration, known gaps, and a task-to-file change map. The reference describes the audited implementation and takes precedence over older feature/setup claims below when they differ.
+The public **`/how-it-works`** page is a guided product walkthrough with screenshots and engineering decisions. It can be explored without signing in.
 
-Copy [backend/.env.example](backend/.env.example) to `backend/.env` and [client/.env.example](client/.env.example) to `client/.env`, then replace the credential placeholders. Use the same Firebase project for both packages. Existing `.env` files should be edited in place rather than overwritten. Real `.env` files are ignored by Git; the example templates are trackable.
+![AI Guruji dashboard with a daily checklist, meal overview and activity summaries](client/public/images/product/overview.png)
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![React](https://img.shields.io/badge/React-18.2.0-61dafb.svg)
-![Node.js](https://img.shields.io/badge/Node.js-Express-green.svg)
-![MongoDB](https://img.shields.io/badge/Database-MongoDB-47A248.svg)
+*Screenshots use a fictional profile and illustrative plans. All four images are lossless 3840 × 3300 PNG exports; open an image to inspect it at full resolution.*
 
-## ✨ Features
+## The product
 
-### 🍽️ Personalized Diet Plans
-- **Indian Cuisine Focus**: Meal plans featuring authentic Indian dishes tailored to your region
-- **Budget-Aware**: Plans adapted to low, medium, or high budget constraints
-- **Allergy Management**: Automatic exclusion of allergens from meal suggestions
-- **Detailed Recipes**: Complete ingredient lists, cooking steps, prep time, and nutritional breakdown
-- **Meal Swapping**: Instantly swap any meal for an alternative while maintaining nutritional goals
-- **Macro Tracking**: Automatic or custom macro calculations (protein, carbs, fats)
+| Area | What it does |
+| --- | --- |
+| Personalized nutrition | Indian meal suggestions informed by food preferences, region, budget, and allergy instructions; recipes with quantities and estimated macros. |
+| Reusable daily targets | Saves AI-estimated calorie and macro targets on the profile, or uses the user's custom macros. Relevant profile changes and significant weight changes trigger a review. |
+| Flexible meal schedules | Supports 2–6 meals with personal labels, optional times, and separate snack slots. Meals and swaps are checked against the saved daily targets. |
+| Training | Generates a seven-day plan for home or gym, with exercise instructions, sets, reps, warm-ups and cooldowns. |
+| Daily tracking & progress | Logs meals and activity, shows saved-day history, and charts actual weight measurements. Weigh-ins can be measured, reused, or skipped. |
+| Ask Guruji | Answers short questions about portions, substitutions, exercise technique, recovery and app use. Full-plan requests go to the dedicated planning screens. |
+| Account & interface | Google/email sign-in, profile onboarding and editing, a responsive dark interface, and clear startup/retry states. |
 
-### 💪 Workout Programs
-- **7-Day Plans**: Complete weekly workout schedules with progressive difficulty
-- **Home & Gym Options**: Exercises tailored to your workout preference
-- **Goal-Oriented**: Programs designed for weight loss, muscle gain, or general fitness
-- **Detailed Instructions**: Exercise descriptions, sets, reps, and estimated calorie burn
-- **Warm-up & Cool-down**: Comprehensive routines for injury prevention
+### A closer look
 
-### 🤖 AI Chat Coach
-- **Real-time Guidance**: Chat with your personal AI fitness coach
-- **Context-Aware**: Remembers your profile, goals, and conversation history
-- **Motivational Support**: Encouraging advice and accountability
-- **Expert Knowledge**: Nutrition and fitness expertise tailored to Indian lifestyle
+| Nutrition | Training |
+| --- | --- |
+| ![Personalized meal plan and macro targets](client/public/images/product/nutrition.png) | ![Weekly workout schedule and exercise cards](client/public/images/product/training.png) |
 
-### 👤 User Profile Management
-- **Comprehensive Profiling**: Age, height, weight, gender, body type analysis
-- **Goal Setting**: Weight loss, muscle gain, or maintenance
-- **Activity Tracking**: Customize based on your activity level
-- **Dietary Preferences**: Vegetarian, non-vegetarian, vegan options
-- **Regional Customization**: Meal plans based on your Indian region
+![Weight trends and saved-day activity history](client/public/images/product/progress.png)
 
-### 🎨 Modern UI/UX
-- **Dark Mode**: Eye-friendly dark theme support
-- **Responsive Design**: Seamless experience across desktop, tablet, and mobile
-- **Intuitive Navigation**: Easy-to-use dashboard with organized sections
-- **Real-time Updates**: Instant feedback and loading states
+## Engineering decisions
 
-## 🛠️ Tech Stack
+This project covers the product flow, React interface, authenticated API, persistence, and model integration. A few decisions are central to how it works:
 
-### Frontend
-- **Framework**: React 18.2.0
-- **Build Tool**: Vite 5.0
-- **Styling**: TailwindCSS 3.3.5
-- **Routing**: React Router DOM 7.18.4
-- **Icons**: Lucide React
-- **Authentication**: Firebase 10.0
-- **HTTP Client**: Axios 1.6.0
+- **Resolve targets once, then reuse them.** Daily menu generation uses saved profile targets. Automatic targets are reassessed when relevant inputs change, including a configurable weight change from the previous target basis (5% by default). Custom macros remain authoritative.
+- **Check AI output before saving it.** Structured JSON is followed by application validation: every scheduled meal must exist, protein must meet the target, and daily totals and meal energy must stay within defined tolerances. Invalid completed output gets at most one correction per stage.
+- **Preserve the user's record.** Changing preferences flags cached menus for explicit rebuilding. Rebuilding retains logged food; historical snapshots keep their original targets and schedule.
+- **Enforce identity on the server.** Firebase ID tokens are verified by the API. The verified UID owns profiles and weight records; request-supplied account IDs do not determine ownership.
+- **Handle slow startup deliberately.** Safe profile reads have bounded retries and cancellation. A backend failure cannot be mistaken for a new user who needs onboarding.
+- **Bound AI requests.** Gemini calls have a timeout and no automatic transport retries. Concurrent target/menu requests share work within one API process. Chat uses a scope decision before generating a contextual answer.
 
-### Backend
-- **Runtime**: Node.js with ES Modules
-- **Framework**: Express 4.18.2
-- **Database**: MongoDB with Mongoose 8.0.0
-- **Authentication**: Firebase Admin SDK 14.5.0 (modular API)
-- **AI Service**: Google Gemini Interactions API (`@google/genai`; `GEMINI_MODEL`, default `gemini-3.6-flash`)
-- **CORS**: Enabled for frontend communication
+These rules have regression coverage, including the case where a menu contains **87 g of protein against a 130 g target** and must be rejected or corrected.
 
-### Infrastructure
-- **Frontend Deployment**: Vercel
-- **Backend Deployment**: Render
-- **Database Hosting**: MongoDB Atlas (recommended)
-- **Authentication**: Firebase Authentication
+## Architecture
 
-## 📁 Project Structure
-
-```
-Ai-guruji/
-├── backend/
-│   ├── src/
-│   │   ├── config/
-│   │   │   ├── database.js          # MongoDB connection
-│   │   │   └── firebase.js          # Firebase Admin initialization
-│   │   ├── controllers/
-│   │   │   ├── authController.js    # Authentication logic
-│   │   │   ├── chatController.js    # AI chat endpoints
-│   │   │   ├── dietController.js    # Diet plan generation
-│   │   │   ├── userController.js    # User profile management
-│   │   │   └── workoutController.js # Workout plan generation
-│   │   ├── middlewares/
-│   │   │   └── authMiddleware.js    # JWT verification
-│   │   ├── models/
-│   │   │   ├── User.js              # User schema
-│   │   │   ├── DietPlan.js          # Diet plan schema
-│   │   │   ├── WorkoutPlan.js       # Workout plan schema
-│   │   │   └── ChatHistory.js       # Chat history schema
-│   │   ├── routes/
-│   │   │   ├── authRoutes.js
-│   │   │   ├── chatRoutes.js
-│   │   │   ├── dietRoutes.js
-│   │   │   ├── userRoutes.js
-│   │   │   └── workoutRoutes.js
-│   │   ├── services/
-│   │   │   └── deepseekService.js   # Gemini prompts and validation (historical filename)
-│   │   ├── app.js                   # Express app configuration
-│   │   └── server.js                # Server entry point
-│   ├── package.json
-│   └── .env                         # Environment variables
-│
-├── client/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Auth.jsx             # Login/Signup component
-│   │   │   ├── LandingPage.jsx      # Home page
-│   │   │   ├── ProfileForm.jsx      # User profile form
-│   │   │   ├── Dashboard.jsx        # Main dashboard
-│   │   │   ├── DietCard.jsx         # Diet plan display
-│   │   │   ├── WorkoutCard.jsx      # Workout plan display
-│   │   │   └── ChatCoach.jsx        # AI chat interface
-│   │   ├── contexts/
-│   │   │   ├── AuthContext.jsx      # Authentication state
-│   │   │   └── ThemeContext.jsx     # Theme management
-│   │   ├── hooks/
-│   │   │   ├── useAuth.js           # Authentication hook
-│   │   │   └── useTheme.js          # Theme hook
-│   │   ├── services/
-│   │   │   ├── backendService.js    # API calls
-│   │   │   └── firebase.js          # Firebase config
-│   │   ├── config/
-│   │   │   └── firebase.js          # Firebase configuration
-│   │   ├── App.jsx
-│   │   ├── AppRouter.jsx            # Route configuration
-│   │   ├── main.jsx
-│   │   └── index.css
-│   ├── package.json
-│   ├── vite.config.js
-│   ├── tailwind.config.js
-│   └── vercel.json                  # Vercel deployment config
-│
-└── README.md
+```mermaid
+flowchart LR
+    Browser[React + Vite] --> Identity[Firebase Authentication]
+    Browser -->|Firebase ID token| API[Express API]
+    API --> Verification[Firebase Admin verification]
+    API <--> Database[(MongoDB)]
+    API --> Gemini[Google Gemini Interactions]
+    Browser <--> Local[Browser daily history and logs]
 ```
 
-## 🚀 Getting Started
+| Layer | Technology |
+| --- | --- |
+| Frontend | React 18, Vite 7, React Router 7, Tailwind CSS 3, custom CSS, Lucide icons |
+| Backend | Node.js 24, Express 4, JavaScript ES modules |
+| Identity | Firebase Authentication and modular Firebase Admin SDK |
+| Database | MongoDB with Mongoose |
+| AI | Official `@google/genai` SDK; Gemini Interactions API; configurable model |
+| Verification | Node test runner, production Vite build, browser review |
+| Hosting configuration | Vercel frontend and Render backend; lockfile-based `npm ci` installs |
 
-### Prerequisites
-- Node.js 24 (`nvm use`; matches the tested runtime and hosting configuration)
-- MongoDB (local or Atlas)
-- Firebase account
-- Google Gemini API key
+### Data boundaries
 
-### Installation
+| Data | Current storage |
+| --- | --- |
+| Profile, reusable targets, meal schedule, weight journal | Account-owned MongoDB records |
+| Generated diet and workout records | MongoDB, plus browser working copies |
+| Meal/exercise completion, manual logs, swapped working menus, chat | Browser-local, scoped to the user |
 
-#### 1. Clone the Repository
-```bash
-git clone https://github.com/yourusername/ai-guruji.git
-cd ai-guruji
-```
+Daily history does not currently hydrate from the server across devices. Clearing browser storage can remove local tracking and chat. Day keys currently use UTC.
 
-#### 2. Backend Setup
+Nutrition values are model estimates. Validation checks structure and arithmetic; it is not an ingredient-composition database or a deterministic allergen checker. Workout and chat failures still have fallback responses. These and other implementation limits are documented in the [architecture reference](docs/ARCHITECTURE.md#9-known-gaps-and-behavior-traps).
+
+## Run locally
+
+You need **Node.js 24**, MongoDB, a Firebase project with Google/email sign-in enabled, and a Google Gemini API key. The client and backend are independent npm packages.
+
+From the project directory:
 
 ```bash
-cd backend
-npm ci
+nvm use
+npm ci --prefix backend
+npm ci --prefix client
 ```
 
-Create a `.env` file in the `backend` directory:
+If Node 24 is not installed, run `nvm install` before `nvm use`, or install Node 24 through your preferred runtime manager.
 
-```env
-# Server Configuration
-PORT=5000
-NODE_ENV=development
-FRONTEND_URL=http://localhost:5173
+### Configure the environment
 
-# MongoDB
-MONGODB_URI=mongodb://localhost:27017/ai-fitness-coach
-# Or use MongoDB Atlas:
-# MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/ai-fitness-coach
+For a fresh checkout, copy [backend/.env.example](backend/.env.example) to `backend/.env` and [client/.env.example](client/.env.example) to `client/.env`. Edit existing environment files in place.
 
-# Google Gemini (backend only)
-GEMINI_API_KEY=your_gemini_api_key_here
-GEMINI_MODEL=gemini-3.6-flash
+| Backend setting | Purpose |
+| --- | --- |
+| `MONGODB_URI` | Local MongoDB or Atlas connection string |
+| `FRONTEND_URL` | Frontend origin; locally `http://localhost:5173` |
+| `GEMINI_API_KEY` | Google API key, kept on the server |
+| `GEMINI_MODEL` | Defaults to `gemini-3.6-flash` |
+| `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` | Firebase Admin service-account credentials; `FIREBASE_SERVICE_ACCOUNT` JSON is an alternative |
+| `PORT` | Defaults to `5000` |
 
-# Firebase Admin SDK
-FIREBASE_PROJECT_ID=your-project-id
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
-FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project-id.iam.gserviceaccount.com
-```
+The client needs the Firebase web app values listed in its template and `VITE_API_URL=http://localhost:5000/api`. Use the same Firebase project on both sides. The `/api` suffix is required. Browser `VITE_*` settings are public build values; Gemini keys, MongoDB credentials, and Firebase Admin private keys belong only in the backend environment.
 
-**Getting API Keys:**
-- **Google Gemini API**: Create a key in [Google AI Studio](https://aistudio.google.com/api-keys). Set it in `backend/.env` or server deployment secrets, never in client `VITE_*` variables. Restart the backend after changing the key. `GOOGLE_API_KEY` is also accepted when `GEMINI_API_KEY` is unset.
-- **Firebase**: Create a project at [console.firebase.google.com](https://console.firebase.google.com) and download service account credentials
-
-#### 3. Frontend Setup
+Run each package in its own terminal:
 
 ```bash
-cd ../client
-npm ci
-```
-
-Create a `.env` file in the `client` directory:
-
-```env
-VITE_API_URL=http://localhost:5000/api
-VITE_FIREBASE_API_KEY=your_firebase_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your-project-id.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project-id
-VITE_FIREBASE_STORAGE_BUCKET=your-project-id.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
-```
-
-### Running the Application
-
-#### Development Mode
-
-**Terminal 1 - Backend:**
-```bash
+# Terminal 1
 cd backend
 npm run dev
 ```
 
-**Terminal 2 - Frontend:**
 ```bash
+# Terminal 2, starting at the repository root
 cd client
 npm run dev
 ```
 
-The application will be available at:
-- Frontend: `http://localhost:5173`
-- Backend API: `http://localhost:5000`
+Open `http://localhost:5173`. The public walkthrough is at `/how-it-works`; backend readiness is at `http://localhost:5000/api/health`.
 
-#### Production Build
+If port 5000 is occupied, change backend `PORT` and client `VITE_API_URL` together, then restart both servers. Also update the Vite proxy target if you use a relative `/api` URL.
 
-**Backend:**
+## Verify changes
+
+Run from the repository root:
+
 ```bash
-cd backend
-npm start
+npm test --prefix backend
+npm test --prefix client
+npm run build --prefix client
 ```
 
-**Frontend:**
-```bash
-cd client
-npm run build
-npm run preview
+The suites cover authentication ownership, startup retries, nutrition targets and validation, personalized meal slots, logged-food preservation, chat scope, and weight tracking. Automated tests use synthetic data and mocks; they do not require paid Gemini requests or production database writes.
+
+For a current dependency report, run `npm audit` inside each package. Keep both lockfiles with changes and review dependency overrides when upgrading their parent packages.
+
+## Deploy
+
+| Setting | Frontend: Vercel | Backend: Render |
+| --- | --- | --- |
+| Root directory | `client` | `backend` |
+| Node version | `24.x` | `24.x` |
+| Install/build | `npm ci`, then `npm run build` | `npm ci` |
+| Output/start | `dist` | `npm start` |
+| Health check | — | `/api/health` |
+| Configuration | [client/vercel.json](client/vercel.json) | [backend/render.yaml](backend/render.yaml) |
+
+Set deployment environment variables separately; local `.env` files are not uploaded by Git. The frontend's `VITE_API_URL` must point to the backend HTTPS URL including `/api`, and backend `FRONTEND_URL` must match the frontend origin. Add the deployed frontend hostname to Firebase Authentication's authorized domains. Rebuild the client after changing its Vite environment values.
+
+Before sharing the deployed app, confirm readiness returns 200 and test sign-in, profile loading, and meal generation in that environment.
+
+## Explore the code
+
+```text
+backend/
+  src/config/          Database and Firebase initialization
+  src/controllers/     Profile, plans, chat, progress and readiness
+  src/middlewares/     Firebase ID-token verification
+  src/models/          MongoDB schemas
+  src/services/        Gemini integration, target resolution and validation
+  src/contracts/       Pure nutrition schedule and profile contracts
+  test/                Backend regression tests
+client/
+  src/components/      Product screens and shared interface controls
+  src/contexts/        Authentication and session state
+  src/hooks/           Progress and nutrition-profile state
+  src/services/        Authenticated API client
+  src/contracts/       Browser mirror of pure nutrition contracts
+  src/utils/           Tracking, history and startup helpers
+  test/                Client regression tests
+  public/images/       Product screenshots and visual assets
+docs/                  Architecture, product decisions and design notes
 ```
 
-## 🔑 API Endpoints
+Start with [AGENTS.md](AGENTS.md) for repository conventions, [ARCHITECTURE.md](docs/ARCHITECTURE.md) for flows and API contracts, or [DESIGN.md](docs/DESIGN.md) for visual decisions. The historical `deepseekService.js` filename now contains Gemini-backed prompts and response handling.
 
-### Authentication
-- `POST /api/auth/verify` - Verify Firebase token and create/update user
+## Author & attribution
 
-### User Management
-- `GET /api/users/profile` - Get user profile
-- `POST /api/users/profile` - Create/update user profile
+**AI Guruji is a project by Dravin Gupta.**
 
-### Diet Plans
-- `POST /api/diet/generate` - Generate personalized diet plan
-- `GET /api/diet/current` - Get current diet plan
-- `POST /api/diet/swap-meal` - Swap a specific meal
+[Explore Dravin's portfolio](https://dravingupta.vercel.app/)
 
-### Workout Plans
-- `POST /api/workout/generate` - Generate weekly workout plan
-- `GET /api/workout/current` - Get current workout plan
+If you reference, demonstrate, or adapt this project, clearly credit Dravin Gupta and link to his portfolio. Please do not present a copied version as your own original work.
 
-### AI Chat
-- `POST /api/chat/message` - Send message to AI coach
-- `GET /api/chat/history` - Get chat history
-
-## 🎯 Usage Guide
-
-### First Time Setup
-1. **Sign Up**: Create an account using Google or email
-2. **Complete Profile**: Fill in your personal details, goals, and preferences
-3. **Generate Plans**: Click "Generate Diet Plan" and "Generate Workout Plan"
-4. **Start Tracking**: Use the dashboard to track your progress
-
-### Daily Workflow
-1. Check your daily meal plan and prepare meals
-2. Follow your workout routine for the day
-3. Chat with AI coach for questions or motivation
-4. Swap meals if needed based on availability or preference
-
-### Customization
-- Update your profile anytime to regenerate plans
-- Toggle between auto and custom macro calculations
-- Switch between light and dark themes
-- Swap individual meals without regenerating entire plan
-
-## 🔒 Security Features
-
-- Firebase Authentication for secure user management
-- JWT token verification on all protected routes
-- Environment variables for sensitive data
-- CORS configuration for API security
-- Input validation and sanitization
-- Secure password handling via Firebase
-
-## 🌐 Deployment
-
-### Frontend (Vercel)
-
-1. Set project root to `client`, Node.js to `24.x`, install command to `npm ci`, build command to `npm run build`, and output directory to `dist`.
-2. Set the browser variables from `client/.env.example`. `VITE_API_URL` must be the backend HTTPS URL **including `/api`**. These values are embedded at build time, so redeploy after changing them.
-3. Add the deployed frontend hostname to Firebase Authentication's authorized domains. Enable the Google/email providers the app uses.
-4. Keep Gemini keys, MongoDB credentials and Firebase Admin service-account credentials only in the backend environment.
-
-### Backend (Render)
-
-1. Connect the repository and set Root Directory to `backend` (the blueprint at `backend/render.yaml` declares it).
-2. Use Node `24.x`, build command `npm ci`, start command `npm start`, and health path `/api/health`.
-3. Add backend variables from `backend/.env.example` to Render's environment. Set `NODE_ENV=production`, `FRONTEND_URL` to the exact frontend origin, and `GEMINI_MODEL=gemini-3.6-flash`.
-4. Set MongoDB and Firebase Admin credentials using the same Firebase project as the client. Local `.env` files are not deployed by Git.
-5. Include both `package-lock.json` files in the deployment commit. They pin the dependency versions verified by audit and tests; avoid `npm audit fix --force` during deployment.
-
-Before opening the app to users, confirm `/api/health` returns 200 and smoke-test sign-in, profile loading and one meal generation on the deployed environment. Local audits/tests/builds do not verify hosting secrets, Firebase domain settings or live service access.
-
-### Database (MongoDB Atlas)
-1. Create a cluster at [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
-2. Get connection string
-3. Update `MONGODB_URI` in backend `.env`
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 👨‍💻 Author
-
-**Dravin Gupta**
-
-## 🙏 Acknowledgments
-
-- Google Gemini for the language model API
-- Firebase for authentication services
-- MongoDB for database solutions
-- React and Vite teams for excellent development tools
-- TailwindCSS for beautiful styling utilities
-
-## 📧 Support
-
-For support, email dravingupta12@gmail.com or open an issue in the repository.
-
-## 🔮 Future Enhancements
-
-- [ ] Progress tracking with charts and analytics
-- [ ] Meal prep planning and grocery lists
-- [ ] Exercise video demonstrations
-- [ ] Social features and community challenges
-- [ ] Mobile app (React Native)
-- [ ] Integration with fitness wearables
-- [ ] Recipe rating and favorites
-- [ ] Meal photo upload for calorie estimation
-- [ ] Workout progress tracking with PR records
-- [ ] Nutritionist consultation booking
-
----
-
-**Made with ❤️ for the Indian fitness community**
+Built with React, Vite, Express, MongoDB, Firebase, Google Gemini, Tailwind CSS and Lucide. Credit for those libraries and services belongs to their respective authors.

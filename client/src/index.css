@@ -586,6 +586,7 @@ button {
 }
 .landing-footer {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 20px;
@@ -1722,6 +1723,7 @@ button {
   padding-top: 20px;
   margin-top: 35px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 15px;
   color: var(--muted);
@@ -3705,6 +3707,10 @@ button {
 .history-day-strip { position:relative; }
 
 .public-nav-actions { display:flex; gap:12px; align-items:center; }
+.creator-credit { display:inline-flex; align-items:center; gap:4px; font-size:12px; letter-spacing:normal; white-space:nowrap; }
+.creator-credit a { display:inline-flex; align-items:center; gap:3px; color:var(--text); font-weight:600; }
+.creator-credit a:hover { color:var(--accent-text); text-decoration:underline; text-underline-offset:3px; }
+.creator-credit a:focus-visible { outline:2px solid var(--accent-text); outline-offset:4px; border-radius:2px; }
 .dashboard-footer>a,.landing-footer>a { display:inline-flex; align-items:center; gap:6px; }
 .dashboard-footer>a:hover,.landing-footer>a:hover { color:var(--accent-text); }
 
@@ -3721,6 +3727,12 @@ button {
 .tour-hero-notes { display:flex; flex-wrap:wrap; gap:8px 17px; margin-top:25px; font-size:12px; color:var(--muted); }
 .tour-hero-notes>span { display:flex; align-items:center; gap:5px; }
 .tour-hero-notes svg { color:var(--accent-text); }
+.tour-byline { display:inline-flex; align-items:center; gap:12px; margin-top:22px; color:var(--muted); font-size:12px; }
+.tour-byline strong { display:block; color:var(--text); font-size:15px; margin-top:3px; }
+.tour-byline-monogram { display:grid; place-items:center; width:40px; height:40px; border:1px solid var(--line); border-radius:50%; color:var(--accent-text); font-weight:700; letter-spacing:-.5px; background:var(--surface); }
+.tour-byline>svg { margin-left:8px; color:var(--accent-text); }
+.tour-byline:hover strong { color:var(--accent-text); }
+.tour-byline:focus-visible { outline:2px solid var(--accent-text); outline-offset:6px; border-radius:6px; }
 .tour-hero-preview { min-width:0; padding:20px 0 0 20px; position:relative; }
 .tour-hero-preview:before { content:''; position:absolute; inset:0 -14px 40px 0; border:1px solid var(--line); background:var(--tour-mint); border-radius:18px; transform:rotate(-3deg); z-index:-1; }
 .tour-preview-label { display:flex; gap:9px; align-items:center; font-size:11px; letter-spacing:1.2px; font-weight:600; padding:0 5px 14px; }
@@ -3880,3 +3892,5 @@ button {
 
 .meal-category>div,.meal-category>.eyebrow { min-width:0; }
 .meal-category .eyebrow { overflow-wrap:anywhere; }
+
+.tour-original-link { margin-bottom:16px; font-size:13px; }

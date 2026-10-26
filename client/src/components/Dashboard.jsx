@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { generateDietPlan, generateWeeklyWorkoutPlan, swapMeal } from '../services/backendService';
 import { ArrowRight, ArrowUpRight, Calendar, Check, ChevronLeft, ChevronRight, Dumbbell, Flame, LayoutDashboard, Loader2, LogOut, MessageCircle, Plus, Settings, Target, TrendingUp, Scale, Utensils, X } from 'lucide-react';
-import { Brand, Button, CoachMark, IconButton, SectionHeading, Tag, TextLink } from './ui';
+import { Brand, Button, CoachMark, CreatorCredit, IconButton, SectionHeading, Tag, TextLink } from './ui';
 import ChatCoach from './ChatCoach';
 import ProfileOverview from './ProfileOverview';
 import Progress from './Progress';
@@ -677,6 +677,7 @@ const Dashboard = ({
       {activeSection === 'coach' && <ChatCoach user={user} planContext={{ date: selectedDate, dietPlan: currentDietPlan, workoutPlan: currentWorkoutPlan }} messages={chatHistory} onUpdateMessages={updateChatHistory} />}
       <footer className="dashboard-footer">
         <span>A LITTLE BETTER, EVERY DAY.</span>
+        <CreatorCredit />
         <a href="/how-it-works">HOW IT WORKS <ArrowUpRight size={13} /></a>
       </footer>
     </main>
