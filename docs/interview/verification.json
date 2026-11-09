@@ -1,0 +1,17 @@
+{
+  "source_snapshot": "16c4932",
+  "source_anchors_verified": 47,
+  "pdf_pages": 48,
+  "rendered_pages_visually_reviewed": 48,
+  "bounds_issues": [],
+  "html_checks": [
+    "search and no-results state",
+    "answer expansion/collapse",
+    "random question and reveal",
+    "next question hides answer",
+    "progress persists after reload",
+    "test progress cleared"
+  ],
+  "application_code_changed": false,
+  "live_model_or_account_test": false
+}

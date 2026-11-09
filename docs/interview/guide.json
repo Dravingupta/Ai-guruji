@@ -1,0 +1,3466 @@
+{
+  "meta": {
+    "title": "AI Guruji | Own the Code",
+    "subtitle": "Visual architecture notes and interview preparation",
+    "date": "8 November 2026",
+    "commit": "16c4932",
+    "client_tests": 19,
+    "backend_tests": 54,
+    "node": "24.13.0"
+  },
+  "refs": {
+    "boot": {
+      "path": "client/src/main.jsx",
+      "line": 6,
+      "label": "React mount and StrictMode",
+      "needle": "ReactDOM.createRoot"
+    },
+    "router": {
+      "path": "client/src/AppRouter.jsx",
+      "line": 19,
+      "label": "Route guards and profile redirects",
+      "needle": "const ProtectedRoute"
+    },
+    "auth": {
+      "path": "client/src/contexts/AuthContext.jsx",
+      "line": 18,
+      "label": "Auth session, abort and revision lifecycle",
+      "needle": "const loadSession"
+    },
+    "jwt": {
+      "path": "client/src/services/api.js",
+      "line": 9,
+      "label": "Client bearer-token injection",
+      "needle": "api.interceptors.request.use"
+    },
+    "verify": {
+      "path": "backend/src/middlewares/authMiddleware.js",
+      "line": 11,
+      "label": "Verified server identity",
+      "needle": "const decodedToken ="
+    },
+    "server": {
+      "path": "backend/src/server.js",
+      "line": 8,
+      "label": "Server startup order",
+      "needle": "connectDB();"
+    },
+    "health": {
+      "path": "backend/src/controllers/healthController.js",
+      "line": 4,
+      "label": "Anonymous readiness",
+      "needle": "export const createHealthHandler"
+    },
+    "retry": {
+      "path": "client/src/utils/backendStartup.js",
+      "line": 43,
+      "label": "Bounded safe-read retries",
+      "needle": "export async function retryStartupRead"
+    },
+    "missing": {
+      "path": "client/src/utils/backendStartup.js",
+      "line": 64,
+      "label": "Strict missing-profile interpretation",
+      "needle": "export async function loadStartupProfile"
+    },
+    "user": {
+      "path": "backend/src/models/User.js",
+      "line": 5,
+      "label": "Profile and target persistence",
+      "needle": "const userSchema"
+    },
+    "profileWrite": {
+      "path": "backend/src/controllers/userController.js",
+      "line": 18,
+      "label": "Profile write allowlist",
+      "needle": "const editable ="
+    },
+    "targets": {
+      "path": "backend/src/services/nutritionProfileService.js",
+      "line": 11,
+      "label": "Persisted target reuse and update",
+      "needle": "export async function resolveNutritionProfile"
+    },
+    "cas": {
+      "path": "backend/src/services/nutritionProfileService.js",
+      "line": 37,
+      "label": "Conditional target write",
+      "needle": "const saved = await User.findOneAndUpdate"
+    },
+    "weightRule": {
+      "path": "backend/src/contracts/nutrition.js",
+      "line": 50,
+      "label": "Cumulative weight-change rule",
+      "needle": "export function weightNeedsTargetReview"
+    },
+    "signature": {
+      "path": "backend/src/contracts/nutrition.js",
+      "line": 32,
+      "label": "Target and menu signatures",
+      "needle": "export function targetInputKey"
+    },
+    "schedule": {
+      "path": "backend/src/contracts/nutrition.js",
+      "line": 18,
+      "label": "Personal schedule contract",
+      "needle": "export function normalizeMealSchedule"
+    },
+    "slotMap": {
+      "path": "backend/src/contracts/nutrition.js",
+      "line": 56,
+      "label": "Legacy and repeated-slot presentation",
+      "needle": "export function planMealSlots"
+    },
+    "macro": {
+      "path": "backend/src/services/nutritionTargets.js",
+      "line": 16,
+      "label": "Custom macro energy",
+      "needle": "export function customNutritionTargets"
+    },
+    "totals": {
+      "path": "backend/src/services/nutritionTargets.js",
+      "line": 33,
+      "label": "Daily macro and meal energy validation",
+      "needle": "export function validateNutritionTotals"
+    },
+    "validate": {
+      "path": "backend/src/services/dietPlanValidation.js",
+      "line": 20,
+      "label": "Meal-slot and recipe validation",
+      "needle": "export const normalizeDietPlan"
+    },
+    "diet": {
+      "path": "backend/src/controllers/dietController.js",
+      "line": 11,
+      "label": "Authenticated menu pipeline/coalescing",
+      "needle": "export const createDietPlan"
+    },
+    "correction": {
+      "path": "backend/src/services/deepseekService.js",
+      "line": 106,
+      "label": "One correction of completed invalid output",
+      "needle": "const validatedNutritionResponse"
+    },
+    "sdk": {
+      "path": "backend/src/services/geminiClient.js",
+      "line": 9,
+      "label": "Lazy Gemini SDK adapter",
+      "needle": "export const geminiTransport"
+    },
+    "interaction": {
+      "path": "backend/src/services/deepseekService.js",
+      "line": 32,
+      "label": "Gemini interaction configuration and errors",
+      "needle": "const callAI ="
+    },
+    "chat": {
+      "path": "backend/src/services/deepseekService.js",
+      "line": 264,
+      "label": "Greeting, scope and answer pipeline",
+      "needle": "export const chatWithCoach"
+    },
+    "scope": {
+      "path": "backend/src/services/chatScope.js",
+      "line": 31,
+      "label": "User-only bounded classifier context",
+      "needle": "export const buildScopeMessage"
+    },
+    "context": {
+      "path": "backend/src/services/coachContext.js",
+      "line": 8,
+      "label": "Allowlisted browser plan context",
+      "needle": "export const summarizePlanContext"
+    },
+    "chatUI": {
+      "path": "client/src/components/ChatCoach.jsx",
+      "line": 19,
+      "label": "Controlled conversation and transport",
+      "needle": "const handleSend"
+    },
+    "markdown": {
+      "path": "client/src/components/ChatMessage.jsx",
+      "line": 12,
+      "label": "Escaped basic Markdown rendering",
+      "needle": "export default function ChatMessage"
+    },
+    "chatDB": {
+      "path": "backend/src/controllers/chatController.js",
+      "line": 6,
+      "label": "Chat response without history write",
+      "needle": "export const sendMessage"
+    },
+    "workout": {
+      "path": "backend/src/controllers/workoutController.js",
+      "line": 13,
+      "label": "Weekly save/date and spread caveats",
+      "needle": "const savedPlans ="
+    },
+    "workoutAI": {
+      "path": "backend/src/services/deepseekService.js",
+      "line": 234,
+      "label": "Workout generation and fallback",
+      "needle": "export const generateWeeklyWorkoutPlan"
+    },
+    "local": {
+      "path": "client/src/components/Dashboard.jsx",
+      "line": 83,
+      "label": "UID/date working caches",
+      "needle": "const getDietKey"
+    },
+    "generation": {
+      "path": "client/src/components/Dashboard.jsx",
+      "line": 118,
+      "label": "Browser generation and rebuild",
+      "needle": "const handleGenerateDiet"
+    },
+    "swap": {
+      "path": "client/src/components/Dashboard.jsx",
+      "line": 296,
+      "label": "Swap replacement and tracking totals",
+      "needle": "const handleSwapMeal"
+    },
+    "toggle": {
+      "path": "client/src/components/Dashboard.jsx",
+      "line": 322,
+      "label": "Meal completion arithmetic",
+      "needle": "const toggleMeal"
+    },
+    "manual": {
+      "path": "client/src/components/Dashboard.jsx",
+      "line": 362,
+      "label": "Avoiding stale burn totals",
+      "needle": "const addManualWorkout"
+    },
+    "retain": {
+      "path": "client/src/utils/mealPlanReplacement.js",
+      "line": 2,
+      "label": "Preserving consumed food across rebuilds",
+      "needle": "export function retainLoggedMeals"
+    },
+    "nutritionHook": {
+      "path": "client/src/hooks/useNutritionProfile.js",
+      "line": 17,
+      "label": "Client coalescing and stale-result protection",
+      "needle": "const refresh ="
+    },
+    "progressHook": {
+      "path": "client/src/hooks/useProgress.js",
+      "line": 12,
+      "label": "Progress state and request revisions",
+      "needle": "const refresh ="
+    },
+    "weightModel": {
+      "path": "backend/src/models/WeightCheckIn.js",
+      "line": 10,
+      "label": "Unique account/date weight journal",
+      "needle": "schema.index"
+    },
+    "weightSave": {
+      "path": "backend/src/controllers/progressController.js",
+      "line": 28,
+      "label": "Owned atomic check-in upsert",
+      "needle": "const filter ="
+    },
+    "weightContext": {
+      "path": "backend/src/services/profileContextService.js",
+      "line": 6,
+      "label": "Latest actual measurement in AI context",
+      "needle": "export async function withLatestWeight"
+    },
+    "chart": {
+      "path": "client/src/utils/progressData.js",
+      "line": 15,
+      "label": "Measured-only trends",
+      "needle": "export function weightSummary"
+    },
+    "date": {
+      "path": "client/src/utils/progressData.js",
+      "line": 1,
+      "label": "UTC day keys and day arithmetic",
+      "needle": "export const dayKey"
+    },
+    "streak": {
+      "path": "client/src/utils/progressData.js",
+      "line": 40,
+      "label": "Activity streak including an empty today",
+      "needle": "export function activityStreak"
+    },
+    "status": {
+      "path": "client/src/utils/nutritionPlan.js",
+      "line": 3,
+      "label": "Outdated cached-menu detection",
+      "needle": "export function nutritionPlanStatus"
+    }
+  },
+  "graphs": {
+    "architecture": {
+      "height": 274,
+      "nodes": [
+        [
+          "ui",
+          0,
+          120,
+          150,
+          58,
+          "React browser",
+          [
+            "Pages, hooks, local state"
+          ],
+          "client"
+        ],
+        [
+          "firebase",
+          180,
+          218,
+          150,
+          46,
+          "Firebase Auth",
+          [
+            "Identity and ID tokens"
+          ],
+          "external"
+        ],
+        [
+          "api",
+          180,
+          120,
+          150,
+          58,
+          "Express API",
+          [
+            "Verify, orchestrate, validate"
+          ],
+          "server"
+        ],
+        [
+          "mongo",
+          360,
+          120,
+          147,
+          58,
+          "MongoDB",
+          [
+            "Profiles, plans, weigh-ins"
+          ],
+          "data"
+        ],
+        [
+          "local",
+          0,
+          10,
+          150,
+          58,
+          "localStorage",
+          [
+            "Working history and chat"
+          ],
+          "data"
+        ],
+        [
+          "gemini",
+          180,
+          10,
+          150,
+          58,
+          "Gemini API",
+          [
+            "Structured output / answers"
+          ],
+          "external"
+        ]
+      ],
+      "edges": [
+        [
+          "ui",
+          "firebase"
+        ],
+        [
+          "ui",
+          "api"
+        ],
+        [
+          "api",
+          "mongo"
+        ],
+        [
+          "ui",
+          "local"
+        ],
+        [
+          "api",
+          "gemini"
+        ]
+      ],
+      "caption": "The browser never receives the Gemini server key. Firebase identifies the user; MongoDB owns app records. Browser working history is a separate persistence path."
+    },
+    "auth": {
+      "height": 220,
+      "nodes": [
+        [
+          "a",
+          0,
+          154,
+          116,
+          56,
+          "1. Sign in",
+          [
+            "Firebase client SDK"
+          ],
+          "client"
+        ],
+        [
+          "b",
+          130,
+          154,
+          116,
+          56,
+          "2. ID token",
+          [
+            "Axios bearer header"
+          ],
+          "client"
+        ],
+        [
+          "c",
+          260,
+          154,
+          116,
+          56,
+          "3. Verify token",
+          [
+            "Admin SDK -> req.user"
+          ],
+          "server"
+        ],
+        [
+          "d",
+          390,
+          154,
+          116,
+          56,
+          "4. Owned query",
+          [
+            "Use verified UID"
+          ],
+          "data"
+        ],
+        [
+          "e",
+          0,
+          26,
+          154,
+          64,
+          "Profile exists",
+          [
+            "Open dashboard"
+          ],
+          "client"
+        ],
+        [
+          "f",
+          177,
+          26,
+          154,
+          64,
+          "Explicit missing 404",
+          [
+            "Open onboarding"
+          ],
+          "client"
+        ],
+        [
+          "g",
+          354,
+          26,
+          152,
+          64,
+          "Network / server fault",
+          [
+            "Wait, then offer Retry"
+          ],
+          "external"
+        ]
+      ],
+      "edges": [
+        [
+          "a",
+          "b"
+        ],
+        [
+          "b",
+          "c"
+        ],
+        [
+          "c",
+          "d"
+        ]
+      ],
+      "caption": "After the owned profile read, these are three different outcomes. A 500, HTML response or timeout is never evidence that a profile is absent."
+    },
+    "nutrition": {
+      "height": 224,
+      "nodes": [
+        [
+          "a",
+          0,
+          154,
+          154,
+          56,
+          "Resolve owned profile",
+          [
+            "Latest actual weight"
+          ],
+          "server"
+        ],
+        [
+          "b",
+          177,
+          154,
+          154,
+          56,
+          "Reuse / resolve targets",
+          [
+            "Persisted or custom"
+          ],
+          "data"
+        ],
+        [
+          "c",
+          354,
+          154,
+          152,
+          56,
+          "Generate slot meals",
+          [
+            "2-6 saved slot IDs"
+          ],
+          "external"
+        ],
+        [
+          "d",
+          354,
+          24,
+          152,
+          64,
+          "Validate result",
+          [
+            "Slots, recipes, totals"
+          ],
+          "server"
+        ],
+        [
+          "e",
+          177,
+          24,
+          154,
+          64,
+          "Re-check preferences",
+          [
+            "Reject stale generation"
+          ],
+          "server"
+        ],
+        [
+          "f",
+          0,
+          24,
+          154,
+          64,
+          "Save and display",
+          [
+            "DB snapshot + local copy"
+          ],
+          "data"
+        ]
+      ],
+      "edges": [
+        [
+          "a",
+          "b"
+        ],
+        [
+          "b",
+          "c"
+        ],
+        [
+          "c",
+          "d"
+        ],
+        [
+          "d",
+          "e"
+        ],
+        [
+          "e",
+          "f"
+        ]
+      ],
+      "caption": "The server is the correctness boundary even if client target ensure and menu generation start concurrently. A completed invalid response can receive one correction; transport failures cannot."
+    },
+    "models": {
+      "height": 240,
+      "nodes": [
+        [
+          "u",
+          170,
+          166,
+          166,
+          64,
+          "User",
+          [
+            "uid unique; profile + targets",
+            "schedule + input signatures"
+          ],
+          "server"
+        ],
+        [
+          "d",
+          0,
+          38,
+          155,
+          82,
+          "DietPlan",
+          [
+            "userId: Firebase UID",
+            "embedded meals + target snapshot",
+            "account/date index, not unique"
+          ],
+          "data"
+        ],
+        [
+          "w",
+          177,
+          38,
+          155,
+          82,
+          "WeightCheckIn",
+          [
+            "userId + date unique",
+            "measured / reused / skipped",
+            "explicit reference and notes"
+          ],
+          "data"
+        ],
+        [
+          "x",
+          354,
+          38,
+          153,
+          82,
+          "WorkoutPlan",
+          [
+            "userId; exercises embedded",
+            "account/date index, not unique",
+            "weekly save is not a transaction"
+          ],
+          "data"
+        ]
+      ],
+      "edges": [
+        [
+          "u",
+          "d"
+        ],
+        [
+          "u",
+          "w"
+        ],
+        [
+          "u",
+          "x"
+        ]
+      ],
+      "caption": "These are logical relationships using the Firebase UID string, not automatic ObjectId foreign keys. ChatHistory also has a schema/read endpoint, but message sends do not persist it."
+    },
+    "reuse": {
+      "height": 210,
+      "nodes": [
+        [
+          "a",
+          0,
+          142,
+          154,
+          56,
+          "Custom macro mode?",
+          [
+            "Yes: fixed custom targets",
+            "No: check auto reuse"
+          ],
+          "server"
+        ],
+        [
+          "b",
+          177,
+          142,
+          154,
+          56,
+          "Auto targets valid?",
+          [
+            "Signature + weight basis"
+          ],
+          "server"
+        ],
+        [
+          "c",
+          354,
+          142,
+          152,
+          56,
+          "Reusable",
+          [
+            "No target estimation call"
+          ],
+          "data"
+        ],
+        [
+          "d",
+          177,
+          20,
+          154,
+          65,
+          "Missing / changed / review",
+          [
+            "Estimate, normalize, save",
+            "Reset reference weight"
+          ],
+          "external"
+        ]
+      ],
+      "edges": [
+        [
+          "a",
+          "b"
+        ],
+        [
+          "b",
+          "c"
+        ],
+        [
+          "b",
+          "d"
+        ]
+      ],
+      "caption": "Custom targets do not need target estimation. In auto mode, valid targets are reused unless inputs change, an explicit review is requested, or the configured weight threshold is reached."
+    },
+    "chat": {
+      "height": 248,
+      "nodes": [
+        [
+          "g",
+          0,
+          176,
+          154,
+          60,
+          "Pure greeting?",
+          [
+            "Yes: local reply (0 calls)",
+            "No: continue to scope"
+          ],
+          "client"
+        ],
+        [
+          "s",
+          177,
+          176,
+          154,
+          60,
+          "Otherwise classify scope",
+          [
+            "Recent user messages only",
+            "1 provider call"
+          ],
+          "external"
+        ],
+        [
+          "o",
+          354,
+          176,
+          152,
+          60,
+          "Off-topic / whole plan",
+          [
+            "Return fixed redirect",
+            "1 total provider call"
+          ],
+          "server"
+        ],
+        [
+          "a",
+          177,
+          42,
+          154,
+          76,
+          "In scope: answer",
+          [
+            "Profile + recent history",
+            "allowlisted plan snapshot",
+            "2 total provider calls"
+          ],
+          "external"
+        ],
+        [
+          "e",
+          354,
+          42,
+          152,
+          76,
+          "Invalid scope / failure",
+          [
+            "Connection-trouble text",
+            "No unrestricted answer"
+          ],
+          "server"
+        ]
+      ],
+      "edges": [
+        [
+          "g",
+          "s"
+        ],
+        [
+          "s",
+          "o"
+        ],
+        [
+          "s",
+          "a"
+        ],
+        [
+          "s",
+          "e"
+        ]
+      ],
+      "caption": "The edge from greeting to classification means \"if it is not a pure greeting\". A scope gate limits answer scope, but still costs a classifier request and is not a rate limiter."
+    },
+    "async": {
+      "height": 215,
+      "nodes": [
+        [
+          "a",
+          0,
+          145,
+          154,
+          56,
+          "Request A starts",
+          [
+            "revision = 1"
+          ],
+          "client"
+        ],
+        [
+          "b",
+          177,
+          145,
+          154,
+          56,
+          "Request B starts",
+          [
+            "revision = 2"
+          ],
+          "client"
+        ],
+        [
+          "c",
+          354,
+          145,
+          152,
+          56,
+          "B finishes first",
+          [
+            "Current revision: apply B"
+          ],
+          "data"
+        ],
+        [
+          "d",
+          177,
+          20,
+          154,
+          64,
+          "A returns late",
+          [
+            "Old revision: ignore A"
+          ],
+          "external"
+        ],
+        [
+          "e",
+          354,
+          20,
+          152,
+          64,
+          "Sign-out / unmount",
+          [
+            "Abort and invalidate revision"
+          ],
+          "server"
+        ]
+      ],
+      "edges": [
+        [
+          "a",
+          "b"
+        ],
+        [
+          "b",
+          "c"
+        ],
+        [
+          "a",
+          "d"
+        ],
+        [
+          "c",
+          "e"
+        ]
+      ],
+      "caption": "Illustrates completion order, not measured latency. Cancellation saves work when supported; the revision check prevents stale results from updating the current account."
+    },
+    "weight": {
+      "height": 172,
+      "nodes": [
+        [
+          "m",
+          0,
+          70,
+          155,
+          80,
+          "Measured",
+          [
+            "Actual scale entry",
+            "Included in weight trend",
+            "May update future AI context"
+          ],
+          "data"
+        ],
+        [
+          "r",
+          177,
+          70,
+          155,
+          80,
+          "Reused",
+          [
+            "Reference to prior measurement",
+            "Not a new trend point",
+            "Source resolved by server"
+          ],
+          "server"
+        ],
+        [
+          "s",
+          354,
+          70,
+          153,
+          80,
+          "Skipped",
+          [
+            "No number stored",
+            "Not a weight of zero",
+            "Does not break activity streak"
+          ],
+          "client"
+        ]
+      ],
+      "edges": [],
+      "caption": "Sparse measurements remain sparse. Activity streaks use logged meals/movement, not whether a person shared weight."
+    },
+    "deploy": {
+      "height": 215,
+      "nodes": [
+        [
+          "v",
+          0,
+          140,
+          155,
+          60,
+          "Vercel",
+          [
+            "Static React build",
+            "SPA route rewrites"
+          ],
+          "client"
+        ],
+        [
+          "r",
+          177,
+          140,
+          155,
+          60,
+          "Render",
+          [
+            "Express / Node 24",
+            "CORS for frontend origin"
+          ],
+          "server"
+        ],
+        [
+          "m",
+          354,
+          140,
+          153,
+          60,
+          "MongoDB + Firebase",
+          [
+            "Persistent data / identity",
+            "Independent external services"
+          ],
+          "data"
+        ],
+        [
+          "g",
+          177,
+          15,
+          155,
+          70,
+          "Gemini",
+          [
+            "Server-only API key",
+            "Configurable model",
+            "No SDK transport retries"
+          ],
+          "external"
+        ],
+        [
+          "b",
+          0,
+          15,
+          155,
+          70,
+          "Browser startup",
+          [
+            "Visible loader + safe reads",
+            "Not a permanent keep-alive"
+          ],
+          "client"
+        ]
+      ],
+      "edges": [
+        [
+          "v",
+          "r"
+        ],
+        [
+          "r",
+          "m"
+        ],
+        [
+          "r",
+          "g"
+        ],
+        [
+          "v",
+          "b"
+        ]
+      ],
+      "caption": "This is the configured deployment design, not an availability or production-load claim. Set VITE_API_URL to the Render API base including /api."
+    }
+  },
+  "pages": [
+    {
+      "title": "How to use this guide",
+      "tag": "START HERE",
+      "goal": "Build understanding you can demonstrate without reading a script.",
+      "blocks": [
+        {
+          "kind": "text",
+          "title": "What this is",
+          "body": "A source-based study guide for AI Guruji at commit 16c4932, audited on 8 November 2026. It explains the current Gemini implementation, reusable targets and personalized schedules. Earlier Groq, fixed-four-meal and light-theme descriptions in historical notes are superseded."
+        },
+        {
+          "kind": "table",
+          "title": "Three passes",
+          "headers": [
+            "Pass",
+            "What to do",
+            "Proof you understand"
+          ],
+          "rows": [
+            [
+              "1. Map",
+              "Read architecture, authentication and storage pages. Draw the system from memory.",
+              "Name every network boundary and data owner."
+            ],
+            [
+              "2. Trace",
+              "Follow one meal request, one weigh-in and one chat from button to response.",
+              "Open the source at the references and explain each step."
+            ],
+            [
+              "3. Change",
+              "Solve the coding exercises in a practice branch; run the relevant tests.",
+              "Make a small change, explain failure cases, and test it."
+            ]
+          ]
+        },
+        {
+          "kind": "text",
+          "title": "Study rule",
+          "body": "Read an answer once, close it, explain it aloud in your own words, then reopen the exact source. Memorize invariants and flows before memorizing filenames. If you cannot explain a line, turn it into a question."
+        },
+        {
+          "kind": "note",
+          "title": "Verification boundary",
+          "body": "This audit ran 19 client tests, 54 backend tests and a production client build successfully under Node 24.13.0. Provider tests mock HTTP. No paid model requests, real-account changes, deployed load tests or live end-to-end sign-in were performed for these notes."
+        }
+      ]
+    },
+    {
+      "title": "A seven-day preparation plan",
+      "tag": "LEARNING PLAN",
+      "goal": "Use the project as a practical full-stack course.",
+      "blocks": [
+        {
+          "kind": "table",
+          "title": "Daily route: about 90-120 minutes",
+          "headers": [
+            "Day",
+            "Study",
+            "Practice aloud / in code"
+          ],
+          "rows": [
+            [
+              "1",
+              "Architecture, source map, persistence",
+              "Draw five components and explain browser vs server data."
+            ],
+            [
+              "2",
+              "React state, auth, routing and startup",
+              "Trace loading -> user/profile -> dashboard or onboarding."
+            ],
+            [
+              "3",
+              "Targets, schedules and validation",
+              "Calculate a macro example; reject a shortfall and a duplicate slot."
+            ],
+            [
+              "4",
+              "Generation, swap and async races",
+              "Trace a meal rebuild while preserving consumed calories."
+            ],
+            [
+              "5",
+              "Progress, training and chat",
+              "Explain measured/reused/skipped; count chat model calls."
+            ],
+            [
+              "6",
+              "Security, deployment and testing",
+              "Diagnose 401, 429, 503, a stale menu and a lost browser cache."
+            ],
+            [
+              "7",
+              "Mock interview and live edits",
+              "Give a two-minute demo, answer follow-ups, solve two exercises."
+            ]
+          ]
+        },
+        {
+          "kind": "bullets",
+          "title": "Use a four-point mastery scale",
+          "items": [
+            "0: I recognize the term but cannot explain it.",
+            "1: I can describe the idea with notes.",
+            "2: I can trace it in this code without notes.",
+            "3: I can change it safely and write a test that would catch a regression."
+          ]
+        },
+        {
+          "kind": "note",
+          "title": "When you are ready to call this your main project",
+          "body": "Aim for level 3 in authentication ownership, nutrition validation, browser/server persistence and the chatbot pipeline. Do not claim expertise in every library simply because it appears in package.json."
+        }
+      ]
+    },
+    {
+      "title": "Your project story and AI-assisted ownership",
+      "tag": "RECRUITER CONVERSATION",
+      "goal": "Present the work honestly, with specific evidence.",
+      "blocks": [
+        {
+          "kind": "text",
+          "title": "A 45-second project explanation",
+          "body": "\"AI Guruji is a personal fitness companion focused on Indian food preferences and practical routines. Users save their goals, generate daily meal plans and weekly workouts, log food and movement, track optional weigh-ins, and ask short follow-up questions about their plans. React handles the experience, Express handles authenticated orchestration, Firebase identifies users, MongoDB stores profiles and key records, and Gemini generates structured plans and coach replies. A major engineering challenge is validating AI output and preserving the user's recorded history when plans change.\""
+        },
+        {
+          "kind": "text",
+          "title": "If asked how much AI wrote",
+          "body": "\"A substantial part of the implementation was AI-assisted. I am not claiming I typed every line manually. My responsibility is to understand the design, verify behavior and maintain it. I can walk through the authentication boundary, the target-validation pipeline, the storage tradeoffs and a change with tests.\" Use the last sentence only after you can actually demonstrate it."
+        },
+        {
+          "kind": "bullets",
+          "title": "Evidence to bring",
+          "items": [
+            "Trace one request in the source instead of naming technologies only.",
+            "Explain one limitation before the interviewer discovers it.",
+            "Show a regression test and why it matters.",
+            "Distinguish a feature you requested/reviewed from a line of code you personally authored."
+          ]
+        },
+        {
+          "kind": "note",
+          "title": "CV wording you can adapt",
+          "body": "\"Developed an AI-assisted personal fitness application using React, Express, MongoDB, Firebase Authentication and Gemini, with validated nutrition planning, optional weight tracking and scoped trainer follow-ups.\" Add test counts only with a date/snapshot. Do not invent usage, accuracy, latency, uptime or weight-loss metrics."
+        }
+      ]
+    },
+    {
+      "title": "The whole system in one picture",
+      "tag": "ARCHITECTURE",
+      "goal": "Explain the system before explaining individual components.",
+      "blocks": [
+        {
+          "kind": "diagram",
+          "name": "architecture"
+        },
+        {
+          "kind": "text",
+          "title": "Why these responsibilities are separated",
+          "body": "The browser renders screens and maintains a working journal. Express is the place to verify tokens, choose the owned database record, call the model and validate results before saving. Firebase is the identity service; it is not the fitness database. The model is an external dependency, not a database or an authorization engine."
+        },
+        {
+          "kind": "text",
+          "title": "Why a monolith is reasonable here",
+          "body": "There are two independent npm packages, not separate microservices for every feature. This keeps deployment and debugging manageable for a personal project. Services and pure contracts separate domain logic without adding network hops."
+        },
+        {
+          "kind": "note",
+          "title": "Say it precisely",
+          "body": "This is an API-backed React single-page application with server-side AI orchestration. It is not a trained-from-scratch model, a vector-search/RAG system, or an autonomous tool-using agent."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "boot",
+            "server",
+            "interaction",
+            "local"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Your source-code navigation map",
+      "tag": "CODE TOUR",
+      "goal": "Know where to look instead of scanning the whole repository.",
+      "blocks": [
+        {
+          "kind": "table",
+          "title": "Follow the responsibility",
+          "headers": [
+            "Area",
+            "Start here",
+            "What it owns"
+          ],
+          "rows": [
+            [
+              "Client boot",
+              "main.jsx -> App.jsx -> AppRouter.jsx",
+              "React root, auth provider, route decisions"
+            ],
+            [
+              "Identity",
+              "contexts/AuthContext.jsx; services/api.js",
+              "Session, profile load, bearer token"
+            ],
+            [
+              "Daily experience",
+              "components/Dashboard.jsx",
+              "Working plans, completion, local journals"
+            ],
+            [
+              "Nutrition",
+              "nutritionProfileService.js; nutritionTargets.js",
+              "Reusable targets, refresh rules, arithmetic"
+            ],
+            [
+              "AI boundary",
+              "geminiClient.js; deepseekService.js",
+              "SDK transport, prompts, parsing, fallbacks"
+            ],
+            [
+              "Shared contract",
+              "client/src/contracts + backend/src/contracts",
+              "Schedule and signature parity"
+            ],
+            [
+              "Progress",
+              "progressController.js; useProgress.js",
+              "Owned weight journal and save state"
+            ],
+            [
+              "Presentation",
+              "DietCard, WorkoutCard, Progress, ChatMessage",
+              "Rendering, interactions, safe formatted text"
+            ]
+          ]
+        },
+        {
+          "kind": "bullets",
+          "title": "Read in this order for an unfamiliar feature",
+          "items": [
+            "UI event -> backendService helper -> Express route -> verifyToken -> controller -> domain service/model -> response -> state/cache update.",
+            "Read docs/ARCHITECTURE.md as an index. Read current source before answering; historical migration notes may describe obsolete behavior.",
+            "The file name deepseekService.js is historical. The actual provider adapter imports Gemini."
+          ]
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "router",
+            "diet",
+            "chat",
+            "progressHook"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Authentication: prove who owns a request",
+      "tag": "CORE WALKTHROUGH",
+      "goal": "Separate identity, authorization and profile existence.",
+      "blocks": [
+        {
+          "kind": "diagram",
+          "name": "auth"
+        },
+        {
+          "kind": "code",
+          "ref": "verify",
+          "lines": 9,
+          "text": "        const decodedToken = await verifyIdToken(token);\n        req.user = {\n            uid: decodedToken.uid,\n            email: decodedToken.email,\n        };\n        next();\n    } catch (error) {\n        console.error('Token verification error:', error.message);\n        res.status(401).json({ error: 'Invalid or expired token' });"
+        },
+        {
+          "kind": "text",
+          "title": "Explain the boundary",
+          "body": "The Firebase client signs the person in. Axios obtains an ID token and puts it in Authorization: Bearer. The Admin SDK verifies it on the server, and controllers use req.user.uid for ownership. A body field named uid or userId is not proof of identity. The frontend route guard improves navigation; it does not protect the API by itself."
+        },
+        {
+          "kind": "note",
+          "title": "Important security-review exception",
+          "body": "The intended rule is verified ownership. The workout save currently spreads generated day fields after ownership/date fields; that weaker boundary needs an explicit allowlist and server-owned fields assigned last. Do not claim every write is immune to ownership override."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "jwt",
+            "verify",
+            "profileWrite",
+            "workout"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Routes, startup and the cold-start loader",
+      "tag": "RELIABILITY",
+      "goal": "A slow backend is a different state from a new user.",
+      "blocks": [
+        {
+          "kind": "table",
+          "title": "Observed state -> UI decision",
+          "headers": [
+            "State",
+            "Current response"
+          ],
+          "rows": [
+            [
+              "Auth/profile read pending",
+              "Show StartupScreen; never hide all provider children."
+            ],
+            [
+              "No Firebase user",
+              "Show public landing/auth; start one bounded anonymous warm-up."
+            ],
+            [
+              "Owned profile loaded",
+              "Open dashboard; existing profile has view mode and a separate editor."
+            ],
+            [
+              "Exact missing profile 404",
+              "Allow onboarding at /profile."
+            ],
+            [
+              "Network, 5xx, invalid HTML/profile",
+              "Retry safe reads, then show connection error with Retry."
+            ],
+            [
+              "Public /how-it-works",
+              "Accessible while session/profile loading or errors continue."
+            ]
+          ]
+        },
+        {
+          "kind": "text",
+          "title": "Know the actual limits",
+          "body": "Profile/readiness reads have a 120-second total window, 15-second attempt limits and 2.5-second gaps. Initial Firebase restoration has a separate 20-second timeout. AbortController and revision checks stop an old session from updating a new one. This is not a permanent keep-alive and does not prevent the host from sleeping."
+        },
+        {
+          "kind": "text",
+          "title": "Why reads and writes differ",
+          "body": "A safe profile/readiness GET can be attempted again. Replaying a plan-generation POST could incur model cost and save extra snapshots. The startup helper does not globally retry writes, swaps or chat."
+        },
+        {
+          "kind": "note",
+          "title": "Health is deliberately limited",
+          "body": "/api/health is public, no-store JSON: 200 ready or 503 starting. It checks MongoDB connection and Firebase Admin initialization, not Gemini quota, model access or every database operation."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "auth",
+            "retry",
+            "missing",
+            "health",
+            "router"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "The data model and its guarantees",
+      "tag": "DATABASE DESIGN",
+      "goal": "Explain why indexes and document structure matter.",
+      "blocks": [
+        {
+          "kind": "diagram",
+          "name": "models"
+        },
+        {
+          "kind": "table",
+          "title": "Index distinction",
+          "headers": [
+            "Record",
+            "What is actually guaranteed"
+          ],
+          "rows": [
+            [
+              "User.uid",
+              "Unique application profile per Firebase UID."
+            ],
+            [
+              "WeightCheckIn(userId,date)",
+              "Unique date entry per user; changing a check-in replaces that date."
+            ],
+            [
+              "DietPlan / WorkoutPlan account+date",
+              "Query index only, not uniqueness. Multiple snapshots can exist."
+            ],
+            [
+              "ChatHistory",
+              "Model/read endpoint exists; sendMessage does not write conversation history."
+            ]
+          ]
+        },
+        {
+          "kind": "text",
+          "title": "Embedding versus references",
+          "body": "Meals and exercises are embedded in plan documents because they belong to a generated snapshot and are commonly read together. User linkage is a string UID. Mongoose provides schemas and queries, but an ordinary index does not create referential integrity or make a multi-document write transactional."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "user",
+            "weightModel",
+            "diet",
+            "workout",
+            "chatDB"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Persistence: the most important tradeoff",
+      "tag": "DATA OWNERSHIP",
+      "goal": "Know what survives a different browser or cleared storage.",
+      "blocks": [
+        {
+          "kind": "table",
+          "title": "Current ownership map",
+          "headers": [
+            "Data",
+            "Where it lives",
+            "Cross-device consequence"
+          ],
+          "rows": [
+            [
+              "Firebase identity",
+              "Firebase Authentication",
+              "Sign in on another browser."
+            ],
+            [
+              "Profile, targets, schedule",
+              "MongoDB User",
+              "Account-owned and reusable."
+            ],
+            [
+              "Generated plan snapshots",
+              "MongoDB plus browser working copy",
+              "DB history exists; dashboard does not hydrate it."
+            ],
+            [
+              "Completion, manual logs, local swaps",
+              "UID/date-scoped localStorage",
+              "Working activity does not currently sync."
+            ],
+            [
+              "Coach conversation",
+              "Per-user browser localStorage",
+              "Sending does not persist ChatHistory."
+            ],
+            [
+              "Weights and cadence",
+              "MongoDB WeightCheckIn / User",
+              "Retrieved through protected progress API."
+            ]
+          ]
+        },
+        {
+          "kind": "code",
+          "ref": "local",
+          "lines": 6,
+          "text": "  const getDietKey = date => `aiCoachDiet_${user.uid}_${date}`;\n  const getWorkoutKey = date => `aiCoachWorkout_${user.uid}_${date}`;\n  const getTrackingKey = date => `aiCoachTracking_${user.uid}_${date}`;\n  const getManualMealsKey = date => `aiCoachManualMeals_${user.uid}_${date}`;\n  const getManualWorkoutsKey = date => `aiCoachManualWorkouts_${user.uid}_${date}`;\n  const getChatKey = () => `aiCoachChat_${user.uid}`;"
+        },
+        {
+          "kind": "text",
+          "title": "Answer the two-device question honestly",
+          "body": "A second device can recover the profile and weight journal, but it cannot reconstruct local completion, manual logs, swaps or the browser conversation. Clearing local cache can trigger generation again even though a plan snapshot is stored in MongoDB. Synchronizing this requires owned journal endpoints plus explicit merge/version semantics; it is not solved by merely adding a history GET."
+        },
+        {
+          "kind": "note",
+          "title": "Namespacing is not authorization",
+          "body": "A UID in a localStorage key prevents accidental mixing in normal app reads. It does not encrypt the data, protect it from XSS, or remove prior account data on logout."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "local",
+            "chatDB",
+            "chart"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "React state: the concepts you must explain",
+      "tag": "FRONTEND FUNDAMENTALS",
+      "goal": "Connect hooks and immutability to a real bug class.",
+      "blocks": [
+        {
+          "kind": "text",
+          "title": "State versus derived values",
+          "body": "Dashboard owns working day state and passes data/callbacks to cards. useState triggers a render; useRef holds mutable bookkeeping without causing one; useEffect synchronizes external work and returns cleanup; useCallback stabilizes a function for specified dependencies. Derived values such as burnedToday should come from current inputs rather than a second unsynchronized copy."
+        },
+        {
+          "kind": "code",
+          "ref": "manual",
+          "lines": 14,
+          "text": "  const addManualWorkout = workout => {\n    const updatedWorkouts = [...currentManualWorkouts, workout];\n    setManualWorkoutsHistory(prev => ({\n      ...prev,\n      [selectedDate]: updatedWorkouts\n    }));\n    localStorage.setItem(getManualWorkoutsKey(selectedDate), JSON.stringify(updatedWorkouts));\n    const completedExerciseIds = [...currentTracking.completedExerciseIds, workout.id];\n    const burned = computeBurnedToday(currentWorkoutPlan, updatedWorkouts, completedExerciseIds);\n    saveTracking({\n      ...currentTracking,\n      completedExerciseIds,\n      totalEstimatedCaloriesBurned: burned,\n      netCalories: currentTracking.totalEstimatedCaloriesConsumed - burned"
+        },
+        {
+          "kind": "text",
+          "title": "Why the extended array matters",
+          "body": "A state setter schedules a future render; it does not mutate the current closure. addManualWorkout computes burn from updatedWorkouts immediately, instead of calling a helper that still sees the old array. Completion IDs, burn and net energy are saved together. For updates based only on previous state, a functional setter such as setItems(old => [...old, item]) avoids capturing an outdated array."
+        },
+        {
+          "kind": "bullets",
+          "title": "Likely follow-ups",
+          "items": [
+            "Why are arrays copied instead of mutated? New references make updates predictable and avoid hidden shared mutation.",
+            "Why does StrictMode expose duplicate effects? Development replay reveals missing cleanup and duplicate side effects; it is not a reason to remove StrictMode.",
+            "Why a custom hook? useProgress and useNutritionProfile isolate async state/lifecycle logic from rendering. They are not globally shared state just because they are hooks."
+          ]
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "manual",
+            "progressHook",
+            "nutritionHook"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Nutrition: understand the full pipeline",
+      "tag": "CORE WALKTHROUGH",
+      "goal": "Separate target estimation, menu construction and validation.",
+      "blocks": [
+        {
+          "kind": "diagram",
+          "name": "nutrition"
+        },
+        {
+          "kind": "text",
+          "title": "Two different model jobs",
+          "body": "Auto target estimation decides reusable daily numeric targets from the saved goal/body/activity inputs and latest actual weight. Menu generation constructs meals for the saved schedule using those fixed targets. A new day normally needs a new menu, not a fresh target estimate. Custom macros skip target estimation entirely."
+        },
+        {
+          "kind": "text",
+          "title": "The server remains authoritative",
+          "body": "The client can ensure target state through useNutritionProfile while a generation request is also starting. Both paths reach server-side target resolution. Client readiness, disabled buttons and displayed totals are useful UX, but only server validation decides whether a generated plan is eligible for saving."
+        },
+        {
+          "kind": "note",
+          "title": "What makes this more than a prompt wrapper",
+          "body": "The application adds owned profile lookup, target persistence, schedule identity, arithmetic checks, bounded correction, stale-profile checks, worker-local coalescing, local journaling and explicit rebuild behavior around the model call."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "nutritionHook",
+            "targets",
+            "diet",
+            "validate",
+            "correction"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "When should nutrition targets change?",
+      "tag": "DOMAIN DECISIONS",
+      "goal": "Defend reuse and refresh rules with numbers.",
+      "blocks": [
+        {
+          "kind": "diagram",
+          "name": "reuse"
+        },
+        {
+          "kind": "text",
+          "title": "Worked example: cumulative weight change",
+          "body": "Suppose the saved target basis is 80 kg and the threshold is 5%. A measurement of 76.1 kg differs by 3.9/80 = 4.875%, so the current targets can remain. At 76.0 kg the absolute difference is 5%, so auto targets need review on the next resolve. Compare with the saved basis, not only yesterday: small cumulative changes can eventually cross the threshold. A successful refresh resets the basis."
+        },
+        {
+          "kind": "text",
+          "title": "Signatures have different jobs",
+          "body": "targetInputKey includes age, gender, height, goal, activity, macro mode and custom grams. Weight is handled separately. nutritionProfileKey also includes the schedule and food/preferences/allergies/region/budget/notes. Name/email changes do not invalidate nutrition. The signature is JSON serialization for comparison, not a cryptographic signature or an authorization mechanism."
+        },
+        {
+          "kind": "note",
+          "title": "Custom targets and concurrency",
+          "body": "Custom grams remain authoritative even after a large weight change. Conditional User writes prevent selected stale profile updates, but the filters are not a full transaction or a guarantee against every concurrent new weigh-in race."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "weightRule",
+            "signature",
+            "targets",
+            "cas"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Meal schedules: three identities, three jobs",
+      "tag": "DATA CONTRACTS",
+      "goal": "Never use meal type as a unique identity.",
+      "blocks": [
+        {
+          "kind": "table",
+          "title": "Do not confuse these fields",
+          "headers": [
+            "Field",
+            "Example",
+            "Purpose"
+          ],
+          "rows": [
+            [
+              "type",
+              "snack",
+              "Category; repeats are allowed."
+            ],
+            [
+              "slotId",
+              "morning-snack",
+              "Stable place in the saved schedule."
+            ],
+            [
+              "id",
+              "generated meal identifier",
+              "Specific meal instance used by completion tracking."
+            ],
+            [
+              "label / time",
+              "Morning snack / 11:00",
+              "User-facing meaning and optional schedule time."
+            ]
+          ]
+        },
+        {
+          "kind": "text",
+          "title": "Current contract",
+          "body": "A saved schedule contains 2-6 slots. Slot IDs must be distinct lowercase alphanumeric/hyphen strings; labels must be nonempty and at most 50 characters; optional time is validated as HH:MM. A generated menu must contain exactly one meal per slot and must preserve schedule order. Two snacks remain independent because their slot IDs differ."
+        },
+        {
+          "kind": "code",
+          "ref": "validate",
+          "lines": 12,
+          "text": "export const normalizeDietPlan = (plan, requiredTargets, requiredSchedule) => {\n    const schedule = normalizeMealSchedule(requiredSchedule || plan?.mealSchedule);\n    const legacy = !requiredSchedule && !plan?.mealSchedule;\n    if (!Array.isArray(plan?.meals) || plan.meals.length !== schedule.length) throw new Error(`A daily plan must include exactly ${schedule.length} scheduled meals`);\n    const seen = new Set();\n    const meals = plan.meals.map(meal => {\n        const slot = schedule.find(slot => meal.slotId ? slot.id === meal.slotId : legacy && slot.type === String(meal.type).toLowerCase());\n        if (!slot || seen.has(slot.id)) throw new Error('A daily plan must contain each scheduled meal exactly once');\n        seen.add(slot.id);\n        const normalized = normalizeMeal(meal, slot.type);\n        return { ...normalized, slotId: slot.id, label: slot.label, time: slot.time };\n    });"
+        },
+        {
+          "kind": "text",
+          "title": "Backward compatibility",
+          "body": "Old plans without a saved schedule use the default four-slot mapping. Presentation keeps extra old meals readable. Historical cards use their own saved schedule and targets, not the current profile preferences. Rebuilding the current menu is explicit."
+        },
+        {
+          "kind": "note",
+          "title": "Why mirror the contract?",
+          "body": "Client and backend each deploy from their own package root. Pure contract copies keep each package self-contained; a behavioral parity test detects drift. A future shared versioned package is an option, not the current architecture."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "schedule",
+            "slotMap",
+            "signature"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Validation: a worked nutrition example",
+      "tag": "ARITHMETIC",
+      "goal": "Explain what validation proves and what it cannot prove.",
+      "blocks": [
+        {
+          "kind": "table",
+          "title": "Example fixed targets, for software arithmetic only",
+          "headers": [
+            "Quantity",
+            "Example target",
+            "Acceptance rule"
+          ],
+          "rows": [
+            [
+              "Calories",
+              "2,000 kcal",
+              "1,800 to 2,200 kcal"
+            ],
+            [
+              "Protein",
+              "150 g",
+              "150 to 172.5 g; no shortfall"
+            ],
+            [
+              "Carbohydrate",
+              "225 g",
+              "191.25 to 258.75 g"
+            ],
+            [
+              "Fat",
+              "56 g",
+              "47.6 to 64.4 g"
+            ]
+          ]
+        },
+        {
+          "kind": "text",
+          "title": "Energy consistency",
+          "body": "The example macro energy is 150*4 + 225*4 + 56*9 = 2,004 kcal, consistent with a 2,000 kcal target. A meal containing 40 g protein, 50 g carbs and 15 g fat implies 495 kcal. If it declares 500 kcal, the difference is 1% of the declared calories, within the meal-level 15% check. These are illustrative arithmetic values, not a recommended diet."
+        },
+        {
+          "kind": "text",
+          "title": "A valid shape can still be wrong",
+          "body": "JSON schema checks structure/types. The domain validator additionally checks scheduled slot completeness, distinctness, recipes, finite nutrition values, daily totals and per-meal macro energy. A plan with 149 g protein fails a 150 g minimum even if its calories are perfect. totalCalories is derived from meals rather than accepted independently."
+        },
+        {
+          "kind": "note",
+          "title": "Do not overclaim nutritional accuracy",
+          "body": "The checks establish internal consistency and target bounds, not truthful ingredient nutrition, allergen exclusion or clinical suitability. The app has no verified food-composition database or deterministic allergen engine."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "totals",
+            "macro",
+            "validate"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Generate a daily menu: trace the code",
+      "tag": "REQUEST WALKTHROUGH",
+      "goal": "Follow the owned request all the way to the working cache.",
+      "blocks": [
+        {
+          "kind": "bullets",
+          "title": "Button to response",
+          "items": [
+            "Dashboard calls generateDietPlan(), which POSTs /api/diet/generate without trusting a client-supplied profile.",
+            "verifyToken sets req.user. createDietPlan resolves that UID's profile/targets and forms a pending-plan key from UID, UTC day, profile signature and fixed targets.",
+            "Gemini receives profile data, the fixed targets and the exact saved meal slots. Completed text is parsed and domain-validated.",
+            "Before saving, the controller reads the current profile and rejects a mismatching menu signature/target set.",
+            "DietPlan.create saves a snapshot. Dashboard caches a dated working copy, initializes tracking if missing and refreshes target profile state."
+          ]
+        },
+        {
+          "kind": "code",
+          "ref": "diet",
+          "lines": 13,
+          "text": "export const createDietPlan = async (req, res) => {\n    const uid = req.user.uid;\n    const date = new Date().toISOString().split('T')[0];\n    let key, operation;\n    try {\n        const { profile, effective } = await resolveNutritionProfile(uid);\n        const profileKey = nutritionProfileKey(profile);\n        key = JSON.stringify([uid, date, profileKey, profile.nutritionTargets]);\n        operation = pendingPlans.get(key);\n        if (!operation) {\n            operation = (async () => {\n                const plan = await generateDietPlan(effective, profile.nutritionTargets);\n                plan.nutritionProfileKey = profileKey;"
+        },
+        {
+          "kind": "text",
+          "title": "What coalescing means",
+          "body": "Simultaneous matching requests in one Node worker await the same Promise. This reduces duplicate estimation/menu calls during concurrent requests and development effect replay. The entry is removed in finally. It is not permanent caching, a distributed lock, global idempotency, or a unique account/day database constraint."
+        },
+        {
+          "kind": "note",
+          "title": "Failure behavior",
+          "body": "A failed target estimate/menu leaves prior saved targets or the working menu intact. Nutrition provider rate errors propagate as 429; availability/configuration errors as 503. A stale-profile conflict is 409. Do not label all failures as missing profile."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "diet",
+            "targets",
+            "correction"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Swaps and rebuilds must preserve history",
+      "tag": "STATE INVARIANTS",
+      "goal": "Do not erase what the user already consumed.",
+      "blocks": [
+        {
+          "kind": "text",
+          "title": "One-meal swap",
+          "body": "The browser sends the current meal plus the working plan. The server reads the owned profile, checks current signature/targets when a plan is supplied, and validates the replacement in the whole-day context. A snack replacement must retain that exact slot ID; another snack is left alone. A new meal instance ID allows distinct completion tracking. The browser recalculates plan calories and tracking targets. The swap does not update the saved MongoDB snapshot."
+        },
+        {
+          "kind": "code",
+          "ref": "retain",
+          "lines": 10,
+          "text": "export function retainLoggedMeals(previousPlan, journal, tracking, nextPlan) {\n  const journalIds = new Set(journal.map(meal => meal.id));\n  const completed = new Set(tracking.completedMealIds);\n  const retained = (previousPlan?.meals || []).filter(meal => completed.has(meal.id) && !journalIds.has(meal.id)).map(meal => ({ ...meal, source: 'manual', timeOfDay: meal.type }));\n  return {\n    journal: [...journal, ...retained],\n    tracking: { ...tracking, totalTargetCalories: nextPlan.totalCalories, calorieDeficit: nextPlan.totalCalories - tracking.totalEstimatedCaloriesConsumed }\n  };\n}"
+        },
+        {
+          "kind": "text",
+          "title": "Worked rebuild example",
+          "body": "A user logged breakfast (460 kcal) and lunch (610 kcal), so consumed energy is 1,070 kcal. They now change five scheduled meals to three and explicitly rebuild. retainLoggedMeals moves completed old planned meals into the manual journal using the original IDs, deduplicating against existing manual entries. Consumed energy, completed IDs and movement history remain; the new target comes from the new menu. Unlogged old meals are not fabricated as eaten."
+        },
+        {
+          "kind": "note",
+          "title": "What to test",
+          "body": "Repeated snack slots, a swap that drops protein below the daily target, stale profile signatures, a rebuilt day with old completed food, duplicate retained IDs and failure leaving the original menu untouched."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "swap",
+            "retain",
+            "validate",
+            "status"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Training: explain the weaker path too",
+      "tag": "CORE WALKTHROUGH",
+      "goal": "A truthful project explanation includes uneven maturity.",
+      "blocks": [
+        {
+          "kind": "text",
+          "title": "Happy path",
+          "body": "The client requests a week starting on the selected date. The prompt asks for seven chronological days, meaningful session focus and appropriate recovery days. The service parses weekPlan, assigns exercise IDs and uses the focus or dayName. The controller saves each returned day with Promise.all; the client assigns consecutive dates by array position and caches each day."
+        },
+        {
+          "kind": "code",
+          "ref": "workout",
+          "lines": 9,
+          "text": "        const savedPlans = await Promise.all(weekPlan.map(day =>\n            WorkoutPlan.create({\n                userId: req.user.uid,\n                date: new Date().toISOString().split('T')[0], \n                ...day\n            })\n        ));\n\n        res.json(savedPlans);"
+        },
+        {
+          "kind": "bullets",
+          "title": "Current limitations you should be ready to discuss",
+          "items": [
+            "The controller stamps the same UTC today date on each entry unless a spread day overrides it. The browser corrects display dates locally; database history dates still need a real fix.",
+            "Promise.all is concurrent, not a transaction. A partial save can survive if another write fails.",
+            "Workout structure/date ordering has weaker domain validation than nutrition. Generated day fields are spread after userId/date, so assign server-owned fields last and allowlist output.",
+            "Provider failure returns a static beginner week with no explicit fallback marker. This must not be presented as a successful personalized generation."
+          ]
+        },
+        {
+          "kind": "note",
+          "title": "Recovery versus missing data",
+          "body": "An actual saved session with an empty exercises array can represent recovery. A missing saved plan means unknown/no data, not automatically a recovery day or a missed workout."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "workout",
+            "workoutAI",
+            "generation"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Progress: measured, reused and skipped",
+      "tag": "CORE WALKTHROUGH",
+      "goal": "Keep an honest record of what is known.",
+      "blocks": [
+        {
+          "kind": "diagram",
+          "name": "weight"
+        },
+        {
+          "kind": "code",
+          "ref": "weightSave",
+          "lines": 13,
+          "text": "        const filter = { userId: req.user.uid, date: entry.date };\n        const update = { $set: { ...entry, userId: req.user.uid } };\n        let saved;\n        try {\n            saved = await WeightCheckIn.findOneAndUpdate(filter, update, { new: true, upsert: true, runValidators: true });\n        } catch (error) {\n            if (error.code !== 11000) throw error;\n            saved = await WeightCheckIn.findOneAndUpdate(filter, update, { new: true, runValidators: true });\n        }\n        res.json(saved);\n    } catch { res.status(500).json({ error: 'Your check-in couldn\u2019t be saved. Please try again.' }); }\n};\nexport const saveProgressPreferences = async (req, res) => {"
+        },
+        {
+          "kind": "text",
+          "title": "Why the write is robust",
+          "body": "The ownership filter is built from req.user.uid plus the validated date. A compound unique index enforces one check-in per account/date; upsert inserts or replaces it. On duplicate-key error 11000 from an insertion race, the controller repeats the update without upsert. A reused entry is resolved from the latest earlier actual measurement on the server, ignoring any browser-supplied weight/source."
+        },
+        {
+          "kind": "text",
+          "title": "Future personalization",
+          "body": "withLatestWeight overlays the latest measured weight in transient AI context and leaves the profile baseline intact. It excludes future, reused and skipped entries. A new measurement can inform target review; it does not automatically replace a menu the user already logged."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "weightModel",
+            "weightSave",
+            "weightContext",
+            "chart"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Numbers, charts and calendar days",
+      "tag": "CALCULATION WALKTHROUGH",
+      "goal": "Explain formulas without confusing them with health outcomes.",
+      "blocks": [
+        {
+          "kind": "table",
+          "title": "Current calculation",
+          "headers": [
+            "Name",
+            "Meaning / example"
+          ],
+          "rows": [
+            [
+              "Consumed",
+              "Sum of logged meal energy. Example: 460+610 = 1,070 kcal."
+            ],
+            [
+              "Burned",
+              "Estimated energy for completed exercises/manual movement."
+            ],
+            [
+              "Net energy",
+              "Consumed - burned. 1,070 - 165 = 905 kcal."
+            ],
+            [
+              "calorieDeficit field",
+              "Target - consumed. 1,900 - 1,070 = 830; does not subtract burn."
+            ],
+            [
+              "Weight change",
+              "Latest actual measurement - first actual in selected range."
+            ],
+            [
+              "Activity streak",
+              "Consecutive days with a meal/exercise log; an empty today can be skipped."
+            ]
+          ]
+        },
+        {
+          "kind": "text",
+          "title": "Manual movement is an estimate",
+          "body": "The modal uses round(minutes * intensityRate * weight/70), with rates 3.5, 7 and 11. Missing/invalid weight falls back to 70 kg. This is an app estimate, not wearable-measured expenditure or a clinical energy-balance engine. Unlogged days are unknown, not proof of non-adherence."
+        },
+        {
+          "kind": "text",
+          "title": "The UTC trap",
+          "body": "dayKey uses toISOString().slice(0,10). At 01:00 on 8 November in India, UTC is still 7 November. Some calendar helpers use UTC-safe day arithmetic while older dashboard loops use local setDate then ISO. A fix must cover cache keys, server dates, charts, history, migration and midnight rollover together; changing one formatter does not fix the data model."
+        },
+        {
+          "kind": "note",
+          "title": "Trend honesty",
+          "body": "weightSummary includes only actual measured points. Two actual observations are needed for a change. Reused values do not create extra points, and scale-weight change is not a body-fat measurement."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "toggle",
+            "manual",
+            "chart",
+            "date",
+            "streak"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "The chatbot is a trainer follow-up channel",
+      "tag": "AI WALKTHROUGH",
+      "goal": "Explain the branches and their cost.",
+      "blocks": [
+        {
+          "kind": "diagram",
+          "name": "chat"
+        },
+        {
+          "kind": "table",
+          "title": "Examples you should predict",
+          "headers": [
+            "Message",
+            "Expected branch"
+          ],
+          "rows": [
+            [
+              "hi",
+              "Deterministic short greeting; no provider request."
+            ],
+            [
+              "Can I replace paneer in lunch?",
+              "In scope; classify, then contextual answer."
+            ],
+            [
+              "Create a whole seven-day diet",
+              "Plan request; direct user to plan screens."
+            ],
+            [
+              "Write Python for my calorie tracker",
+              "Off topic, even though calories are fitness-related."
+            ]
+          ]
+        },
+        {
+          "kind": "text",
+          "title": "Why scope excludes old assistant replies",
+          "body": "The classifier gets the latest message and up to four recent user messages truncated to 500 characters each. Saved profile data and assistant messages are excluded so an old fitness goal or strict response does not transform an unrelated request into a fitness task. Relevant answering then uses profile, recent conversation and summarized plan context."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "chat",
+            "scope",
+            "context",
+            "chatUI"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Prompts, context and safe presentation",
+      "tag": "AI SAFETY BOUNDARIES",
+      "goal": "Distinguish useful controls from guarantees.",
+      "blocks": [
+        {
+          "kind": "text",
+          "title": "What is supplied to the answer model",
+          "body": "The coach policy asks for short practical help about meals, exercise and recovery. Saved profile context excludes UID/email and includes relevant preferences and saved targets. The answer history is normalized to user/assistant roles and capped at 12 messages. Browser working-plan context is projected into bounded meal/exercise fields rather than passed through wholesale."
+        },
+        {
+          "kind": "text",
+          "title": "A browser plan is advisory",
+          "body": "The snapshot can include local swaps and incomplete data. summarizePlanContext keeps useful fields, trims text and bounds lists, and labels the data as a browser snapshot. It is not an authenticated server record and must not be interpreted as instructions. Missing meals stay unknown; an empty actual workout can mean recovery."
+        },
+        {
+          "kind": "code",
+          "ref": "markdown",
+          "lines": 9,
+          "text": "export default function ChatMessage({ text }) {\n  const lines = String(text || '').replace(/\\r\\n/g, '\\n').split('\\n');\n  const blocks = [];\n  for (let index = 0; index < lines.length;) {\n    const line = lines[index].trim();\n    if (!line || /^[-*_]{3,}$/.test(line)) { index++; continue; }\n    const heading = line.match(/^#{1,6}\\s+(.+)$/);\n    if (heading) { blocks.push(<h4 key={index}>{inline(heading[1], `h-${index}`)}</h4>); index++; continue; }\n    const list = line.match(/^(?:[-*+]\\s+|\\d+[.)]\\s+)/);"
+        },
+        {
+          "kind": "text",
+          "title": "Why users do not see raw ** markers",
+          "body": "ChatMessage converts a small Markdown subset into React elements: emphasis, code, headings, lists and paragraphs. It never evaluates raw HTML. React escapes ordinary strings, so text such as an img/onerror tag remains text. This is not a full Markdown/link/table renderer and not a claim that all possible XSS sources in the app have been audited."
+        },
+        {
+          "kind": "note",
+          "title": "Scope is not credit-abuse prevention by itself",
+          "body": "The classifier is model-based, may misclassify, and still costs a request. The project has no per-account rate limiter or hard budget system. A serious abuse-control layer needs those independent server-side controls."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "context",
+            "scope",
+            "markdown",
+            "chatDB"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Gemini integration: know the exact boundary",
+      "tag": "PROVIDER DESIGN",
+      "goal": "Explain configuration and failure behavior without exposing keys.",
+      "blocks": [
+        {
+          "kind": "table",
+          "title": "Current implementation",
+          "headers": [
+            "Setting",
+            "Behavior"
+          ],
+          "rows": [
+            [
+              "Adapter",
+              "geminiClient.js lazily creates GoogleGenAI; prompts stay in deepseekService.js."
+            ],
+            [
+              "Configured model",
+              "GEMINI_MODEL, default gemini-3.6-flash; provider availability is not verified here."
+            ],
+            [
+              "Server credential",
+              "GEMINI_API_KEY, then GOOGLE_API_KEY; never a VITE_ client secret."
+            ],
+            [
+              "Interaction style",
+              "Native user_input/model_output steps; store:false; no streaming or tools."
+            ],
+            [
+              "Transport",
+              "60-second timeout; SDK retries strategy none."
+            ],
+            [
+              "Accepted result",
+              "Nonempty text only when response.status is completed."
+            ],
+            [
+              "Errors",
+              "429 -> AI_RATE_LIMIT; credential/model access -> AI_CONFIGURATION; other failures -> AI_UNAVAILABLE."
+            ]
+          ]
+        },
+        {
+          "kind": "text",
+          "title": "Structured output is the first layer",
+          "body": "JSON tasks request an application/json schema; nutrition/scope have explicit requirements, while workout uses a more generic object shape. Parsed output still needs domain validation. store:false is a request setting, not a blanket guarantee about a provider's total data-handling policy."
+        },
+        {
+          "kind": "text",
+          "title": "One correction is not an automatic network replay",
+          "body": "Nutrition may make one additional call after a completed response fails JSON/domain validation. It includes the prior output and validation error while keeping targets fixed. If no completed response was received, the failure propagates immediately. Menu/target/swap corrections are bounded per stage, not free or unlimited."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "sdk",
+            "interaction",
+            "correction",
+            "totals"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Asynchronous code and concurrency",
+      "tag": "JAVASCRIPT FUNDAMENTALS",
+      "goal": "Tell cancellation, stale suppression and coalescing apart.",
+      "blocks": [
+        {
+          "kind": "diagram",
+          "name": "async"
+        },
+        {
+          "kind": "table",
+          "title": "Three mechanisms",
+          "headers": [
+            "Mechanism",
+            "What it solves",
+            "What it does not solve"
+          ],
+          "rows": [
+            [
+              "AbortController",
+              "Cancels waiting/transport when supported.",
+              "Does not undo a write already committed."
+            ],
+            [
+              "Revision/live refs",
+              "Ignore results for old sessions or obsolete requests.",
+              "Do not serialize every server operation."
+            ],
+            [
+              "Map of pending Promises",
+              "Share simultaneous matching work in one worker.",
+              "Not a distributed lock, permanent cache or idempotency key."
+            ],
+            [
+              "Conditional User update",
+              "Reject certain changed profile states before saving.",
+              "Not a full transaction across all collections."
+            ]
+          ]
+        },
+        {
+          "kind": "text",
+          "title": "Explain await and Promise.all",
+          "body": "await suspends the async function, not the entire Node process. Promise.all waits for a group and rejects when one rejects; other operations may still run. That is why a weekly save can be partially persisted. Always distinguish an in-memory concurrency optimization from a durable database guarantee."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "auth",
+            "progressHook",
+            "nutritionHook",
+            "targets",
+            "diet",
+            "workout"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Deployment and configuration",
+      "tag": "OPERATIONS",
+      "goal": "Trace a production request without revealing credentials.",
+      "blocks": [
+        {
+          "kind": "diagram",
+          "name": "deploy"
+        },
+        {
+          "kind": "bullets",
+          "title": "What to configure",
+          "items": [
+            "Use Node 24 from .nvmrc and the package engine declarations. Each package has its own tracked lockfile; npm ci installs the locked tree.",
+            "Build client with npm run build. Vercel serves its static output and rewrites SPA paths to index.html. These rewrites do not automatically proxy the API to Render.",
+            "Set VITE_API_URL to the backend base including /api. VITE_ values are included in the browser bundle; keep model keys and Firebase Admin private keys on the backend.",
+            "Set the backend MongoDB, Firebase Admin, Gemini and frontend-origin environment values. Do not paste credential values into a README, browser console, CV or screenshot.",
+            "Render config uses backend as rootDir, npm ci, npm start and /api/health as healthCheckPath. A readiness failure is different from model quota/access failure."
+          ]
+        },
+        {
+          "kind": "note",
+          "title": "CORS is not authentication",
+          "body": "CORS governs browser cross-origin access. A script outside a browser is not stopped by CORS. Every protected route still needs a verified bearer token and owned queries; avoid describing FRONTEND_URL as the security boundary."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "server",
+            "health",
+            "jwt",
+            "sdk"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Security review: controls and gaps",
+      "tag": "ENGINEERING JUDGMENT",
+      "goal": "Make qualified claims you can defend in source.",
+      "blocks": [
+        {
+          "kind": "table",
+          "title": "Threat model",
+          "headers": [
+            "Concern",
+            "Current control",
+            "Remaining work"
+          ],
+          "rows": [
+            [
+              "Cross-account API access",
+              "Verified token UID; owned queries in profile/progress/nutrition paths.",
+              "Allowlist workout output and assign server-owned fields last."
+            ],
+            [
+              "Secret exposure",
+              "Gemini/Admin credentials stay on server; public web config is separate.",
+              "Redact raw model/health-context logs and maintain secret hygiene."
+            ],
+            [
+              "Prompt injection",
+              "Role/policy separation; bounded projected plan data; scope gate.",
+              "Model-based controls are not guaranteed jailbreak prevention."
+            ],
+            [
+              "Credit exhaustion",
+              "Greeting bypass, scope gate, token limits, target reuse, worker coalescing.",
+              "Per-account rate limits, quotas, request budgets and abuse monitoring."
+            ],
+            [
+              "Shared-browser privacy",
+              "UID-scoped local keys.",
+              "Explicit cleanup/export policy; XSS defenses and storage recovery."
+            ],
+            [
+              "Unsafe profile writes",
+              "Editable-field allowlist; schedule/custom-target validation.",
+              "Comprehensive demographic validation; verified email policy."
+            ]
+          ]
+        },
+        {
+          "kind": "text",
+          "title": "Own the workout boundary issue",
+          "body": "Workout day data is spread after userId/date and has weaker validation. The intended identity invariant should be enforced after allowlisting model fields, not merely requested in a prompt. In an interview, explain how you would test an output containing a forged userId/date and prove it cannot change persistence ownership."
+        },
+        {
+          "kind": "note",
+          "title": "Do not say production-secure",
+          "body": "Tests and a token middleware are useful evidence, not a complete security audit. Discuss controls, gaps, priorities and verification methods separately."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "verify",
+            "profileWrite",
+            "workout",
+            "interaction",
+            "context"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Limitations and the next sensible iteration",
+      "tag": "DESIGN TRADEOFFS",
+      "goal": "A mature answer does not hide unfinished boundaries.",
+      "blocks": [
+        {
+          "kind": "table",
+          "title": "Prioritized follow-up work",
+          "headers": [
+            "Priority",
+            "Observed limitation",
+            "Next implementation idea"
+          ],
+          "rows": [
+            [
+              "1",
+              "Workout output ownership/date safety and weak validation.",
+              "Allowlisted normalized output; verified ownership last; actual day sequence validation + tests."
+            ],
+            [
+              "2",
+              "Activity/chat working history stays in the browser.",
+              "Owned journal APIs, server hydration, versioned merge and offline conflict rules."
+            ],
+            [
+              "3",
+              "No durable generation idempotency across workers.",
+              "Request keys, uniqueness/version policy and a distributed/durable claim of work."
+            ],
+            [
+              "4",
+              "Workout/chat errors resemble successful responses.",
+              "Typed status/fallback markers and honest recovery UI."
+            ],
+            [
+              "5",
+              "UTC/local day mismatch and no midnight rollover.",
+              "Define user timezone and migrate cache/history consistently."
+            ],
+            [
+              "6",
+              "No rate limits, full privacy controls or CI.",
+              "Add budget/rate policy, export/delete semantics and automated checks."
+            ]
+          ]
+        },
+        {
+          "kind": "text",
+          "title": "What is intentionally out of scope now",
+          "body": "No body-image analysis, vector retrieval, wearable integration, model training, streaming answers or automatic plan execution by chat is implemented. Nutrition estimates are internally checked but not clinically verified. A weight chart alone cannot prove fat loss or causal effectiveness."
+        },
+        {
+          "kind": "note",
+          "title": "How to frame a weakness",
+          "body": "\"The current version does X. That creates limitation Y. I would change Z and verify it with these tests.\" Avoid saying a future feature already exists, or promising that a generated plan is medically accurate."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "workout",
+            "local",
+            "chatDB",
+            "date",
+            "sdk"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Testing: explain what the evidence means",
+      "tag": "QUALITY ENGINEERING",
+      "goal": "Tests should protect behavior, not imitate implementation.",
+      "blocks": [
+        {
+          "kind": "table",
+          "title": "Fresh verification on 8 November 2026",
+          "headers": [
+            "Check",
+            "Result",
+            "What it demonstrates"
+          ],
+          "rows": [
+            [
+              "client: npm test",
+              "19 passed",
+              "Formatting safety, retained logs, schedule/status logic, trends, dates, startup cancellation."
+            ],
+            [
+              "backend: npm test",
+              "54 passed",
+              "Token ownership, progress rules, target reuse/CAS, schedule parity, validation and mocked SDK transport."
+            ],
+            [
+              "client: npm run build",
+              "Passed with Vite 7.3.7",
+              "The frontend compiles into production assets."
+            ],
+            [
+              "Live service / deployment",
+              "Not performed for this guide",
+              "No claim of real-model reliability, real-account E2E success, load capacity or availability."
+            ]
+          ]
+        },
+        {
+          "kind": "text",
+          "title": "A strong example",
+          "body": "The protein-shortfall tests ensure an 87 g day cannot satisfy a fixed 130 g target, even if model text claims it is sufficient. The provider 429 test mocks HTTP and asserts one request, preventing accidental paid retries. The reused/skipped trend test ensures a chart does not fabricate measurements."
+        },
+        {
+          "kind": "text",
+          "title": "What still needs coverage",
+          "body": "Add an actual authenticated browser/API happy path, deployed CORS/rewrites/health checks, model-output ownership/date hardening, cross-worker idempotency, and a reproducible evaluation set for chatbot scope. Existing Node tests are not an end-to-end or load-test suite."
+        },
+        {
+          "kind": "note",
+          "title": "Commands to reproduce",
+          "body": "From the repo use Node 24. Run npm test separately in client/ and backend/, then npm run build in client/. Do not run from the parent folder: there is no root npm workspace. Avoid live paid provider requests just to prove a unit test passes."
+        }
+      ]
+    },
+    {
+      "title": "Debugging drill: blank page or wrong onboarding",
+      "tag": "FAILURE REASONING",
+      "goal": "Walk through evidence before changing keys or prompts.",
+      "blocks": [
+        {
+          "kind": "table",
+          "title": "Symptom -> investigation",
+          "headers": [
+            "Symptom",
+            "Inspect first",
+            "Reasoning"
+          ],
+          "rows": [
+            [
+              "Blank startup canvas",
+              "HTML fallback, AuthProvider children, route loading/error guards.",
+              "Rendering must not depend on the slow profile result."
+            ],
+            [
+              "Existing user sees profile editor",
+              "GET /users/profile status and exact error payload.",
+              "Only the explicit missing-profile 404 means a new profile."
+            ],
+            [
+              "Loader reaches Retry",
+              "API base URL, /api suffix, health JSON, CORS, network and server logs.",
+              "Do not use a frontend HTML response as API success."
+            ],
+            [
+              "401",
+              "Authorization header, Firebase project alignment, Admin verification.",
+              "Changing the Gemini key cannot fix Firebase identity."
+            ],
+            [
+              "Health ready but AI fails",
+              "Gemini key/model/quota and provider error code.",
+              "Readiness does not probe the model."
+            ]
+          ]
+        },
+        {
+          "kind": "text",
+          "title": "Use a diagnostic sequence",
+          "body": "Confirm the actual browser request URL, HTTP status and response type. Confirm server route and health. Check authentication separately from AI access. Then inspect saved profile/targets and the model error category. Never log complete bearer tokens, private keys or whole health profiles while debugging."
+        },
+        {
+          "kind": "qa",
+          "q": "Would you automatically retry a failed generation POST?",
+          "a": "Not with the startup read helper. A failed response does not prove the model was never charged or the database never saved. First define idempotency and recovery behavior; then decide which failures are safe to replay.",
+          "probe": ""
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "missing",
+            "health",
+            "retry",
+            "interaction"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Debugging drill: wrong meals, totals or dates",
+      "tag": "FAILURE REASONING",
+      "goal": "Trace the source of truth for each symptom.",
+      "blocks": [
+        {
+          "kind": "table",
+          "title": "Symptom -> source -> verification",
+          "headers": [
+            "Symptom",
+            "Likely boundary",
+            "Next step"
+          ],
+          "rows": [
+            [
+              "Changing model/key appears to do nothing",
+              "Browser plan cache.",
+              "Inspect the correct UID/day key; cached plans are not auto-regenerated."
+            ],
+            [
+              "Two snack slots collapse into one",
+              "type confused with slotId.",
+              "Trace normalization and swap selection; test distinct IDs."
+            ],
+            [
+              "New day keeps old targets",
+              "Often intended target reuse.",
+              "Compare input key and measured weight with saved basis."
+            ],
+            [
+              "Current menu marked outdated",
+              "Food/schedule/target signature mismatch.",
+              "Offer explicit rebuild; retain consumed food and historical snapshots."
+            ],
+            [
+              "Weights appear on skipped days",
+              "Chart filtering.",
+              "Only measured entries should become points; skipped is null, not zero."
+            ],
+            [
+              "Wrong workout dates in DB",
+              "Controller day stamping / object spread.",
+              "Validate and assign actual date per index before owned persistence."
+            ]
+          ]
+        },
+        {
+          "kind": "qa",
+          "q": "Why can a total be internally consistent yet still inaccurate?",
+          "a": "The model may estimate an ingredient's nutrition incorrectly while keeping 4/4/9 energy and daily totals consistent. Arithmetic checks do not verify a food database or allergen safety.",
+          "probe": ""
+        },
+        {
+          "kind": "qa",
+          "q": "Why does my plan differ after switching browsers?",
+          "a": "The dashboard does not hydrate the server history into its working cache. The profile and weight journal can be recovered, but local activities/swaps/chat cannot currently be reconstructed.",
+          "probe": ""
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "status",
+            "schedule",
+            "totals",
+            "weightContext",
+            "workout",
+            "local"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Coding practice: pure functions first",
+      "tag": "HANDS-ON EXERCISES",
+      "goal": "Implement these without asking AI for the answer first.",
+      "blocks": [
+        {
+          "kind": "table",
+          "title": "Exercises and acceptance criteria",
+          "headers": [
+            "Task",
+            "Where to work",
+            "Expected behavior"
+          ],
+          "rows": [
+            [
+              "1. Measured-only summary",
+              "Practice around weightSummary.",
+              "Mixed measured/reused/skipped input returns only actual points and correct first/last change."
+            ],
+            [
+              "2. Strict protein minimum",
+              "Practice around validateNutritionTotals.",
+              "A total of 149 g fails a 150 g target, even when calories fit."
+            ],
+            [
+              "3. Stable repeated snacks",
+              "normalizeMealSchedule / slot mapping.",
+              "Two snack slots remain distinct; duplicate slot IDs and 25:00 times fail."
+            ],
+            [
+              "4. Immutable completion",
+              "Write a small pure toggle helper in a practice branch.",
+              "Add/remove one ID without mutating the original; apply calories once."
+            ],
+            [
+              "5. Safe current-day rebuild",
+              "retainLoggedMeals.",
+              "A consumed old meal stays once in the journal with its original ID/calories."
+            ]
+          ]
+        },
+        {
+          "kind": "text",
+          "title": "Hints to check after trying",
+          "body": "Filter by status before sorting weights. Compare protein with the target before accepting any tolerance. Use slotId for a place in the schedule and id for an instance. Use a Set for deduplication, not meal names. Preserve completion/consumption history when target/schedule changes."
+        },
+        {
+          "kind": "note",
+          "title": "Your proof of completion",
+          "body": "Write a failing test before the fix, then make it pass. Explain why the old behavior fails, which invariant your change protects, and which unrelated behavior stays intact. Do the exercises in a practice branch; they are not changes implemented by this document."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "chart",
+            "totals",
+            "schedule",
+            "retain",
+            "toggle"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Coding practice: boundary and concurrency tasks",
+      "tag": "HANDS-ON EXERCISES",
+      "goal": "Move from explaining code to defending a change.",
+      "blocks": [
+        {
+          "kind": "table",
+          "title": "More demanding exercises",
+          "headers": [
+            "Task",
+            "Acceptance criteria"
+          ],
+          "rows": [
+            [
+              "6. Harden weekly output",
+              "A generated forged userId/date cannot override verified ownership; exactly seven valid ordered dates; recovery day shape explicit."
+            ],
+            [
+              "7. Failure classification",
+              "Exact missing-profile 404 permits onboarding; HTML 404, 401, 503 and timeout cannot be silently treated as absence."
+            ],
+            [
+              "8. Late-result race",
+              "Start A, start B, resolve B then A; only B updates the current screen. Abort/unmount prevents later updates."
+            ],
+            [
+              "9. Semantic fallback response",
+              "Design {status, source, data, error} for workout/chat failures and explain a backward-compatible rollout."
+            ],
+            [
+              "10. Cross-device history design",
+              "Specify ownership, event IDs, versioning, conflict resolution and migration before writing hydration code."
+            ]
+          ]
+        },
+        {
+          "kind": "text",
+          "title": "Suggested approach for task 6",
+          "body": "Parse provider output into a fresh allowlisted object. Validate chronological dates using one consistent day contract. Assign userId from req.user.uid and the date from server logic after normalization. Add a test where the provider includes unexpected ownership/date fields. Then decide whether weekly persistence needs a transaction or a job status."
+        },
+        {
+          "kind": "note",
+          "title": "Do not bypass the interview exercise",
+          "body": "If you get stuck, write down the exact unknown: array transformation, async order, database filter, HTTP semantics or React lifecycle. Study that concept, then retry from a blank file. Copying a polished answer does not demonstrate maintainability."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "workout",
+            "missing",
+            "progressHook",
+            "targets"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "React and browser fundamentals",
+      "tag": "INTERVIEW QUESTION BANK",
+      "goal": "Close each answer and explain it in your own words.",
+      "blocks": [
+        {
+          "kind": "qa",
+          "q": "What happens after a user logs in?",
+          "a": "Firebase returns identity; AuthProvider loads the owned profile through Axios, shows startup state, then route guards choose dashboard or genuine onboarding. A request failure stays a connection error.",
+          "probe": "Trace a returning user and a new user separately."
+        },
+        {
+          "kind": "qa",
+          "q": "Why use Context here?",
+          "a": "The Firebase user, MongoDB profile and session actions are needed by several screens. Context exposes that shared state without passing it through every intermediate component. It is not the persistence layer.",
+          "probe": "What belongs in local component state instead?"
+        },
+        {
+          "kind": "qa",
+          "q": "Why is useRef useful for a revision?",
+          "a": "It survives renders without causing one. Comparing a request's captured revision to the current ref lets the hook ignore late results from an obsolete operation.",
+          "probe": "Why is abort alone insufficient?"
+        },
+        {
+          "kind": "qa",
+          "q": "Why not mutate the meals array?",
+          "a": "A copied array makes state changes explicit and avoids mutating an object shared by the prior render. Replacement also lets React observe a new reference.",
+          "probe": "When is a functional state setter preferable?"
+        },
+        {
+          "kind": "qa",
+          "q": "What does useEffect cleanup do?",
+          "a": "It unsubscribes Firebase listeners, aborts pending reads or invalidates a request revision when the component/effect is replaced. Cleanup prevents stale work from updating the wrong session.",
+          "probe": "Explain StrictMode development replay."
+        },
+        {
+          "kind": "qa",
+          "q": "Why stable IDs rather than array indexes?",
+          "a": "The UI needs to track the same semantic item across ordering or replacement. A schedule slot ID and a generated completion ID solve different identity problems; a render index cannot replace either.",
+          "probe": "What changes on a meal swap?"
+        },
+        {
+          "kind": "qa",
+          "q": "Why a route guard if the server verifies tokens?",
+          "a": "The guard directs users to sign-in/onboarding and shows loading/errors. The server remains the authorization boundary for actual data access. Both are needed for different reasons.",
+          "probe": "Can a user bypass a frontend guard?"
+        },
+        {
+          "kind": "qa",
+          "q": "Is localStorage a secure database?",
+          "a": "It is synchronous, origin-scoped browser storage. It is convenient for this working journal but is readable by JavaScript, device-local and currently lacks quota/recovery/cleanup handling.",
+          "probe": "What would happen after logout on a shared computer?"
+        }
+      ]
+    },
+    {
+      "title": "HTTP, backend and databases",
+      "tag": "INTERVIEW QUESTION BANK",
+      "goal": "Close each answer and explain it in your own words.",
+      "blocks": [
+        {
+          "kind": "qa",
+          "q": "Why Express routes, controllers and services?",
+          "a": "Routes connect URLs to verified handlers; controllers translate HTTP and ownership into operations; services hold domain/provider logic; models define persistence. This makes policy and arithmetic testable without a live UI.",
+          "probe": "Where should a macro validation rule live?"
+        },
+        {
+          "kind": "qa",
+          "q": "Authentication versus authorization?",
+          "a": "Authentication proves the token identity. Authorization ensures an operation is scoped to that verified UID and allowed resource. A valid token does not authorize another account's records.",
+          "probe": "Show the owned progress filter."
+        },
+        {
+          "kind": "qa",
+          "q": "What is an upsert?",
+          "a": "It updates a matching document or inserts if none matches. Weight writes use verified UID plus date, together with a unique compound index, so the journal has one dated entry per account.",
+          "probe": "Why handle duplicate-key error 11000?"
+        },
+        {
+          "kind": "qa",
+          "q": "Why not a unique index on all plan dates?",
+          "a": "Plans currently store generated snapshots, and explicit sequential rebuilds may produce more than one. Changing uniqueness requires defining versions, current-plan selection and migration, not simply adding a constraint.",
+          "probe": "How would idempotency differ from snapshot versioning?"
+        },
+        {
+          "kind": "qa",
+          "q": "Does Promise.all make writes atomic?",
+          "a": "No. It coordinates concurrent promises; one rejection does not roll back writes that already succeeded. Weekly persistence needs an explicit transaction or an explicit partial/job model if atomicity is required.",
+          "probe": "What happens if day four fails?"
+        },
+        {
+          "kind": "qa",
+          "q": "What does HTTP 409 mean here?",
+          "a": "A conflict: preferences/targets changed while an operation was in progress, so its result should not be saved as current. The user can retry using the new state.",
+          "probe": "Why not return a successful stale menu?"
+        },
+        {
+          "kind": "qa",
+          "q": "Why is CORS not enough?",
+          "a": "It constrains browser cross-origin behavior, not arbitrary HTTP clients. The API still needs token verification, owned queries, input validation and resource controls.",
+          "probe": "Can curl ignore the browser's CORS policy?"
+        },
+        {
+          "kind": "qa",
+          "q": "What belongs in a health endpoint?",
+          "a": "A minimal non-sensitive readiness result with no-store cache policy. This implementation checks MongoDB and Admin initialization but deliberately does not spend a model call or expose profile/secret details.",
+          "probe": "Readiness versus liveness?"
+        }
+      ]
+    },
+    {
+      "title": "Nutrition, identity and validation",
+      "tag": "INTERVIEW QUESTION BANK",
+      "goal": "Close each answer and explain it in your own words.",
+      "blocks": [
+        {
+          "kind": "qa",
+          "q": "Why resolve targets before meals?",
+          "a": "It gives generation a stable numeric contract and lets unchanged goals reuse targets. The model cannot excuse a protein shortfall by redefining the target after seeing the menu.",
+          "probe": "What changes in custom mode?"
+        },
+        {
+          "kind": "qa",
+          "q": "Why a separate signature for targets and menus?",
+          "a": "Body/goal/activity changes can affect target estimates; schedule/food preferences affect meal composition. Separating them avoids unnecessary target estimation while still identifying outdated menus.",
+          "probe": "Why are name and email excluded?"
+        },
+        {
+          "kind": "qa",
+          "q": "When does 5% weight review trigger?",
+          "a": "Compare the current effective actual/profile weight with the saved target basis using absolute percentage difference. Several small changes can accumulate to the threshold; successful refresh resets the basis.",
+          "probe": "80 kg to 76.1 kg versus 76.0 kg?"
+        },
+        {
+          "kind": "qa",
+          "q": "What is the difference between schema and domain validation?",
+          "a": "A schema can require typed fields and arrays. Domain checks enforce exactly the saved slots, realistic internal macro energy, recipe completeness and fixed daily tolerances. Valid JSON alone is insufficient.",
+          "probe": "Give an output that passes schema but fails domain checks."
+        },
+        {
+          "kind": "qa",
+          "q": "Why do two snacks need distinct IDs?",
+          "a": "Their category is the same but their scheduled positions differ. A swap must replace only the selected slot, and completion refers to a specific generated meal instance.",
+          "probe": "Explain type, slotId and id."
+        },
+        {
+          "kind": "qa",
+          "q": "Is a nutritionProfileKey a security signature?",
+          "a": "No. It is deterministic JSON used to compare relevant inputs and detect changes. Authorization comes from token verification and server ownership, not from trusting this string.",
+          "probe": "What would a cryptographic signature add, and where would it be verified?"
+        },
+        {
+          "kind": "qa",
+          "q": "Why keep completed food on rebuild?",
+          "a": "A new plan is a suggestion; consumed food is a historical fact. Retaining IDs and calories avoids losing or double-counting the user's actual log.",
+          "probe": "What happens to unlogged old meals?"
+        },
+        {
+          "kind": "qa",
+          "q": "Can the app guarantee allergy safety?",
+          "a": "No. It includes allergy constraints in prompts and checks output structure/arithmetic, but does not deterministically verify every ingredient against an allergen database.",
+          "probe": "What additional data/validation would you need?"
+        }
+      ]
+    },
+    {
+      "title": "AI integration and provider failures",
+      "tag": "INTERVIEW QUESTION BANK",
+      "goal": "Close each answer and explain it in your own words.",
+      "blocks": [
+        {
+          "kind": "qa",
+          "q": "Did you train a model?",
+          "a": "No. The app orchestrates an external Gemini model using prompts, structured output, profile context and server validation. It does not train weights or fine-tune a model.",
+          "probe": "What is the engineering beyond calling an API?"
+        },
+        {
+          "kind": "qa",
+          "q": "Is this RAG?",
+          "a": "Not in its current form: it has no embedding pipeline or vector retrieval. Saved structured profile/plan context is included directly in requests.",
+          "probe": "When might retrieval become useful?"
+        },
+        {
+          "kind": "qa",
+          "q": "How many model calls does a chat use?",
+          "a": "A pure greeting uses zero. An off-topic or whole-plan non-greeting uses one scope call. A relevant follow-up normally uses scope plus answer, two calls. Failures may stop earlier.",
+          "probe": "Does an off-topic message cost nothing?"
+        },
+        {
+          "kind": "qa",
+          "q": "Why exclude assistant messages from classification?",
+          "a": "Old assistant instructions or a saved fitness goal should not turn an unrelated latest request into an in-scope task. Recent user messages are only context for follow-ups.",
+          "probe": "What if a previous assistant reply was very strict?"
+        },
+        {
+          "kind": "qa",
+          "q": "Do JSON schemas eliminate hallucinations?",
+          "a": "No. They constrain structure, not truth. The backend still checks domain constraints, and ingredient nutrition/allergen suitability remains model-estimated.",
+          "probe": "Which facts cannot arithmetic validate?"
+        },
+        {
+          "kind": "qa",
+          "q": "What happens on a 429?",
+          "a": "The adapter maps it to AI_RATE_LIMIT and does not perform an SDK network replay. Nutrition exposes the error; workout/chat retain their older fallback behavior, a known inconsistency.",
+          "probe": "Why might retrying immediately worsen the problem?"
+        },
+        {
+          "kind": "qa",
+          "q": "Why allow one correction of invalid output?",
+          "a": "A completed response may be structurally or arithmetically invalid. One bounded correction includes the specific validation error and fixed targets. It is different from replaying a failed transport request.",
+          "probe": "What is the maximum for an already-valid-target menu stage?"
+        },
+        {
+          "kind": "qa",
+          "q": "Does store:false mean no data is ever retained?",
+          "a": "It is the Interactions request setting used by this code, not a statement about every provider logging, abuse-monitoring or contractual retention policy. Avoid stronger privacy claims without checking those policies.",
+          "probe": "Where is conversation history actually managed?"
+        }
+      ]
+    },
+    {
+      "title": "Scale, reliability and judgment",
+      "tag": "INTERVIEW QUESTION BANK",
+      "goal": "Close each answer and explain it in your own words.",
+      "blocks": [
+        {
+          "kind": "qa",
+          "q": "How would you handle many users?",
+          "a": "First measure request mix and provider limits. Add per-user budgets/rate limiting, durable idempotency, shared job coordination and indexed/paginated persistence; then scale API workers. Worker-local Maps alone do not coordinate replicas.",
+          "probe": "What breaks when a second worker starts?"
+        },
+        {
+          "kind": "qa",
+          "q": "Can startup retries duplicate a paid plan request?",
+          "a": "The startup utility only wraps profile and readiness reads. It does not wrap plan/chat POSTs, and Gemini SDK retries are disabled. A future retry policy needs durable idempotency for write/cost side effects.",
+          "probe": "What if the model succeeded but the response was lost?"
+        },
+        {
+          "kind": "qa",
+          "q": "Can a late response affect the wrong account?",
+          "a": "The client aborts on session changes and compares request revisions/UIDs before setting state. Server requests independently verify identity. Cancellation does not undo an already committed write.",
+          "probe": "Show the exact revision comparison."
+        },
+        {
+          "kind": "qa",
+          "q": "Why is server history not cross-device sync yet?",
+          "a": "Database snapshots exist, but Dashboard does not hydrate/merge working logs, swaps and chat from them. A sync design needs stable event IDs, ownership, versions and conflict semantics.",
+          "probe": "What wins if two devices edit the same day?"
+        },
+        {
+          "kind": "qa",
+          "q": "What would you fix first?",
+          "a": "Harden workout output ownership/date validation, then make history persistence honest and reliable, then add durable generation idempotency and cost controls. These reduce correctness/security risk before adding extra AI features.",
+          "probe": "Which test would prove the first fix?"
+        },
+        {
+          "kind": "qa",
+          "q": "How would you evaluate chat scope?",
+          "a": "Create a labeled set of greetings, relevant follow-ups, unrelated/code requests, whole-plan requests, mixed and adversarial turns. Measure classification errors and cost/latency rather than relying on a few demos.",
+          "probe": "Which false positives are most costly?"
+        },
+        {
+          "kind": "qa",
+          "q": "What is your biggest remaining design tradeoff?",
+          "a": "The hybrid persistence model keeps the browser experience simple but limits continuity and recovery. The guide treats it as an explicit limitation, not complete cross-device account history.",
+          "probe": "Why not promise full offline support?"
+        },
+        {
+          "kind": "qa",
+          "q": "How do you prove ownership of AI-assisted code?",
+          "a": "Explain an unfamiliar request path, name its invariants and failure cases, make a small change, and add a meaningful test. Be explicit that AI assisted implementation and avoid claiming unearned authorship or impact metrics.",
+          "probe": "Can you do that exercise without using AI?"
+        }
+      ]
+    },
+    {
+      "title": "A realistic 25-minute mock interview",
+      "tag": "PRACTICE SESSION",
+      "goal": "Practise follow-ups, not just prepared speeches.",
+      "blocks": [
+        {
+          "kind": "table",
+          "title": "Run this with a friend or record yourself",
+          "headers": [
+            "Time",
+            "Prompt",
+            "Strong evidence"
+          ],
+          "rows": [
+            [
+              "0-2 min",
+              "Give your project pitch.",
+              "Problem, user journey, architecture and honest AI-assistance disclosure."
+            ],
+            [
+              "2-6 min",
+              "Draw the architecture and authentication flow.",
+              "Verified UID boundary and separate browser/server storage."
+            ],
+            [
+              "6-11 min",
+              "Trace daily nutrition generation.",
+              "Reusable targets, slot identity, validation, persistence and failure states."
+            ],
+            [
+              "11-15 min",
+              "Explain a scope decision and its cost.",
+              "0/1/2 calls, failed classification, bounded context and limits."
+            ],
+            [
+              "15-19 min",
+              "A user loses history after switching devices.",
+              "State the current storage boundary, then propose a merge design."
+            ],
+            [
+              "19-23 min",
+              "Perform a small pure-function change.",
+              "No mutation, relevant edge cases, one meaningful test."
+            ],
+            [
+              "23-25 min",
+              "What would you improve and why?",
+              "Prioritize correctness/security and show a measured plan."
+            ]
+          ]
+        },
+        {
+          "kind": "bullets",
+          "title": "Score each area from 0 to 3",
+          "items": [
+            "Accuracy: distinguishes current implementation from intended behavior.",
+            "Traceability: can locate the source and explain the data entering/leaving.",
+            "Reasoning: compares alternatives and identifies failure modes.",
+            "Practical skill: can write/debug a small change and justify its test.",
+            "Integrity: states AI assistance, unknowns and limits without bluffing."
+          ]
+        },
+        {
+          "kind": "note",
+          "title": "After the practice",
+          "body": "Replay unclear answers. For each one, write: claim -> source -> invariant -> counterexample -> test. If your answer depends on memorized wording, practise the same idea with a different example."
+        }
+      ]
+    },
+    {
+      "title": "Your demo and CV checklist",
+      "tag": "PRESENTATION",
+      "goal": "Make the demonstration credible and easy to follow.",
+      "blocks": [
+        {
+          "kind": "bullets",
+          "title": "A two-minute demo order",
+          "items": [
+            "Show profile preferences and the personal schedule, then the corresponding nutrition screen.",
+            "Explain saved targets versus planned totals; show one useful recipe or meal substitution.",
+            "Show Training and mark an exercise completed; make clear calorie burn is estimated.",
+            "Show Progress with actual/reused/skipped semantics and historical view-only days.",
+            "Ask the coach one practical follow-up and one unrelated request to demonstrate scope.",
+            "Point out the public walkthrough and explain the cold-start loader if it appears."
+          ]
+        },
+        {
+          "kind": "text",
+          "title": "Before an interview",
+          "body": "Use clearly labeled sample data or your own account; never expose real credentials or another person's health records. Rehearse both warm and unavailable-backend behavior. Know that clearing browser storage removes working history. Do not rely on a live model succeeding at exactly the right moment; have truthful screenshots and explain their sample-data provenance."
+        },
+        {
+          "kind": "text",
+          "title": "CV bullet templates",
+          "body": "1. \"Developed an AI-assisted fitness companion with React, Express, MongoDB, Firebase Authentication and Gemini.\" 2. \"Implemented fixed-target nutrition validation, personalized meal-slot contracts and history-preserving plan rebuilding.\" 3. \"Added scoped trainer follow-ups, optional weight journaling and bounded startup read retries.\" Use implemented/reviewed wording only to the extent it accurately describes your own work and current understanding."
+        },
+        {
+          "kind": "note",
+          "title": "Claims to avoid",
+          "body": "Do not claim a self-trained LLM, RAG, body-image analysis, clinical accuracy, guaranteed abuse prevention, automatic cross-device activity sync, production load capacity, or personal authorship of every line. A smaller precise claim is easier to defend."
+        }
+      ]
+    },
+    {
+      "title": "Last-minute revision: twelve invariants",
+      "tag": "QUICK REFERENCE",
+      "goal": "These should survive even if you forget a filename.",
+      "blocks": [
+        {
+          "kind": "bullets",
+          "title": "Say these without notes",
+          "items": [
+            "Identity comes from a verified server token, not a browser-supplied UID; harden the workout spread exception.",
+            "Firebase stores identity; MongoDB stores application records.",
+            "Working activity, swaps and chat are still browser-local.",
+            "A 500 or timeout is not a missing-profile 404.",
+            "Startup retries safe reads, not writes or paid generation calls.",
+            "Targets can be reused across days; menus are a separate task.",
+            "Custom macros are authoritative; weight review applies to auto targets.",
+            "A type can repeat; a slotId must be unique; a meal id tracks an instance.",
+            "Valid JSON is not valid nutrition, and arithmetic is not clinical truth.",
+            "Pure greeting: 0 model calls; redirect: 1; relevant follow-up: normally 2.",
+            "Measured, reused and skipped are different states; scale change is not fat loss.",
+            "A Promise Map is worker-local coordination, not durable global idempotency."
+          ]
+        },
+        {
+          "kind": "note",
+          "title": "Answer structure for almost any question",
+          "body": "Start with what this code does. Point to a source location. Explain the tradeoff. Give a failure case and a test. If you do not know, say what you would inspect rather than inventing an answer."
+        },
+        {
+          "kind": "refs",
+          "ids": [
+            "verify",
+            "missing",
+            "targets",
+            "validate",
+            "chat",
+            "chart"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Glossary: browser and API language",
+      "tag": "CONCEPT REFERENCE",
+      "goal": "Translate vocabulary into project behavior.",
+      "blocks": [
+        {
+          "kind": "table",
+          "title": "Terms used in this guide",
+          "headers": [
+            "Term",
+            "Project-specific meaning"
+          ],
+          "rows": [
+            [
+              "SPA",
+              "A browser app whose route changes render React views; Vercel must serve index.html for deep links."
+            ],
+            [
+              "Component",
+              "A React function that renders UI from props/state, such as DietCard."
+            ],
+            [
+              "Props",
+              "Inputs/callbacks passed into a component; they are not a persistence mechanism."
+            ],
+            [
+              "State",
+              "Values that drive a component render, such as the selected training date."
+            ],
+            [
+              "Derived state",
+              "A computed value, such as burn from completed IDs, rather than a second independently edited copy."
+            ],
+            [
+              "Closure",
+              "A function captures values from a render; setters do not change those captured values immediately."
+            ],
+            [
+              "Effect cleanup",
+              "Unsubscribe/abort/invalidate when the effect or component is replaced."
+            ],
+            [
+              "Context",
+              "Shared React session data; separate from the database."
+            ],
+            [
+              "HTTP status",
+              "Machine-readable request outcome; 401, 404, 409, 429 and 503 mean different things."
+            ],
+            [
+              "Bearer token",
+              "A credential carried in Authorization; verify it before trusting its UID."
+            ],
+            [
+              "JWT",
+              "Signed token format; reading a payload is not signature verification."
+            ],
+            [
+              "CORS",
+              "Browser cross-origin access policy, not a substitute for authentication."
+            ],
+            [
+              "Middleware",
+              "Express function that can verify a request and call next before the controller."
+            ],
+            [
+              "Controller",
+              "HTTP input/output and orchestration boundary, such as saveCheckIn."
+            ],
+            [
+              "SDK",
+              "Provider client library; geminiClient wraps the official Google SDK."
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Glossary: data and AI language",
+      "tag": "CONCEPT REFERENCE",
+      "goal": "Use the right word for the guarantee you actually have.",
+      "blocks": [
+        {
+          "kind": "table",
+          "title": "Terms used in this guide",
+          "headers": [
+            "Term",
+            "Project-specific meaning"
+          ],
+          "rows": [
+            [
+              "Schema",
+              "A structural definition for a database document or model response."
+            ],
+            [
+              "Domain validation",
+              "Business rules beyond field types, such as exact slots and daily macro bounds."
+            ],
+            [
+              "Normalization",
+              "Transforming acceptable input/output into a consistent representation."
+            ],
+            [
+              "Upsert",
+              "Update a matching record or insert it if absent."
+            ],
+            [
+              "Compound unique index",
+              "Enforces uniqueness of a combination, such as userId plus date."
+            ],
+            [
+              "Snapshot",
+              "Stored state of a generated plan at a point in time."
+            ],
+            [
+              "Hydration",
+              "Loading persisted data into client working state; server plan hydration is not implemented."
+            ],
+            [
+              "Idempotency",
+              "Repeating an operation does not create extra intended effects; not provided globally for generation."
+            ],
+            [
+              "Coalescing",
+              "Sharing one in-flight Promise for matching concurrent work in a worker."
+            ],
+            [
+              "CAS / conditional write",
+              "A write succeeds only if selected stored values still match an expected state."
+            ],
+            [
+              "Transaction",
+              "A database unit of work committed or rolled back as a group; Promise.all is not one."
+            ],
+            [
+              "Prompt injection",
+              "Untrusted text tries to redirect model behavior; prompt instructions alone cannot guarantee prevention."
+            ],
+            [
+              "Structured output",
+              "A request for schema-shaped model output; domain checks still run afterward."
+            ],
+            [
+              "RAG",
+              "Retrieval-augmented generation; no embedding/vector retrieval system exists here."
+            ],
+            [
+              "Cold start",
+              "The service is starting after inactivity; handled through visible UI and bounded safe reads."
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Code-reading checkpoints",
+      "tag": "SOURCE INDEX",
+      "goal": "Open these locations and explain the adjacent code.",
+      "blocks": [
+        {
+          "kind": "table",
+          "title": "First pass: identity and domain",
+          "headers": [
+            "Reference",
+            "Why it matters"
+          ],
+          "rows": [
+            [
+              "router",
+              "Route guards and profile redirects"
+            ],
+            [
+              "auth",
+              "Auth session, abort and revision lifecycle"
+            ],
+            [
+              "jwt",
+              "Client bearer-token injection"
+            ],
+            [
+              "verify",
+              "Verified server identity"
+            ],
+            [
+              "health",
+              "Anonymous readiness"
+            ],
+            [
+              "retry",
+              "Bounded safe-read retries"
+            ],
+            [
+              "missing",
+              "Strict missing-profile interpretation"
+            ],
+            [
+              "profileWrite",
+              "Profile write allowlist"
+            ],
+            [
+              "targets",
+              "Persisted target reuse and update"
+            ],
+            [
+              "cas",
+              "Conditional target write"
+            ],
+            [
+              "weightRule",
+              "Cumulative weight-change rule"
+            ],
+            [
+              "signature",
+              "Target and menu signatures"
+            ],
+            [
+              "schedule",
+              "Personal schedule contract"
+            ],
+            [
+              "validate",
+              "Meal-slot and recipe validation"
+            ],
+            [
+              "totals",
+              "Daily macro and meal energy validation"
+            ]
+          ]
+        },
+        {
+          "kind": "note",
+          "title": "How to use the source index",
+          "body": "Each source key resolves to an exact file and line in the next reference pages. The companion HTML links to repository files; PDF references remain readable. Line numbers describe this snapshot and will move after edits."
+        }
+      ]
+    },
+    {
+      "title": "Verified source references 1",
+      "tag": "SOURCE INDEX",
+      "goal": "Repository-relative paths and symbols; source wins over historical notes.",
+      "blocks": [
+        {
+          "kind": "source_index",
+          "ids": [
+            "boot",
+            "router",
+            "auth",
+            "jwt",
+            "verify",
+            "server",
+            "health",
+            "retry",
+            "missing",
+            "user",
+            "profileWrite",
+            "targets",
+            "cas",
+            "weightRule",
+            "signature",
+            "schedule"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Verified source references 2",
+      "tag": "SOURCE INDEX",
+      "goal": "Repository-relative paths and symbols; source wins over historical notes.",
+      "blocks": [
+        {
+          "kind": "source_index",
+          "ids": [
+            "slotMap",
+            "macro",
+            "totals",
+            "validate",
+            "diet",
+            "correction",
+            "sdk",
+            "interaction",
+            "chat",
+            "scope",
+            "context",
+            "chatUI",
+            "markdown",
+            "chatDB",
+            "workout",
+            "workoutAI"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Verified source references 3",
+      "tag": "SOURCE INDEX",
+      "goal": "Repository-relative paths and symbols; source wins over historical notes.",
+      "blocks": [
+        {
+          "kind": "source_index",
+          "ids": [
+            "local",
+            "generation",
+            "swap",
+            "toggle",
+            "manual",
+            "retain",
+            "nutritionHook",
+            "progressHook",
+            "weightModel",
+            "weightSave",
+            "weightContext",
+            "chart",
+            "date",
+            "streak",
+            "status"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Keep the notes accurate as the code changes",
+      "tag": "MAINTENANCE",
+      "goal": "Treat this as a source-backed learning guide, not a permanent truth.",
+      "blocks": [
+        {
+          "kind": "text",
+          "title": "Update protocol",
+          "body": "When changing a provider, schema, route, persistence boundary, retry policy or schedule/target rule, update the corresponding guide chapter and question answers. Refresh the source pins and exact code excerpts by rebuilding from the content generator. Re-run the relevant tests and record the new counts/date; passing unit tests alone does not verify deployment."
+        },
+        {
+          "kind": "bullets",
+          "title": "What was verified for this edition",
+          "items": [
+            "Current source at commit 16c4932; no uncommitted application changes were present at the start of this audit.",
+            "Node 24.13.0; 19 client and 54 backend tests passed; production Vite build passed.",
+            "Configured Gemini model name and SDK options were read from code, not checked against a paid live endpoint.",
+            "Historical architecture notes were treated as an index; current source was used when behavior had changed.",
+            "This work creates learning documents only. It does not implement the roadmap or repair the code-review risks discussed here."
+          ]
+        },
+        {
+          "kind": "note",
+          "title": "Final preparation challenge",
+          "body": "Without opening this guide: draw the system, trace a meal request, explain exactly what is browser-local, predict a greeting versus a relevant chat cost, then change a validation test and make it pass. That is stronger evidence than memorizing a project description."
+        }
+      ]
+    }
+  ]
+}
